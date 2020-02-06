@@ -342,6 +342,21 @@ DSTATUS SD_disk_initialize(BYTE drv)
 
 	CardType = type;
 
+	// attempt high-speed mode
+	if (type)
+	{
+		// set group 1 (access mode) = 1 (high-speed)
+		if(SD_SendCmd(CMD6, 0x80FFFFF1) == 0)
+		{
+			uint8_t status[64];
+			SD_RxDataBlock(status, 64);
+
+			// check new value
+			if((status[16] & 0xF) == 0x1)
+				SPI1->CFG1 = (SPI1->CFG1 & 0xFFFFFFF) | SPI_BAUDRATEPRESCALER_4;
+		}
+	}
+
 	/* Idle */
 	DESELECT();
 	SPI_RxByte();
