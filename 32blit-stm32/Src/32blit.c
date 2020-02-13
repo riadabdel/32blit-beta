@@ -134,6 +134,13 @@ std::string battery_charge_status() {
   }
 }
 
+void render_yield() {
+  if(display::needs_render) {
+    blit::render(blit::now());
+    display::enable_vblank_interrupt();
+  }
+}
+
 void blit_tick() {
   if(exit_game) {
     #if EXTERNAL_LOAD_ADDRESS == 0x90000000
