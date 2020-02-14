@@ -121,7 +121,7 @@ jobs:
       os: windows
       env:
         - CMAKE_ARGS=-DSDL2_DIR=$TRAVIS_BUILD_DIR/vs/sdl
-        - RELEASE_FILE=${TRAVIS_BUILD_DIR}${REPO}-${TRAVIS_TAG}-${TRAVIS_BUILD_NUMBER}-WIN64
+        - RELEASE_FILE=${TRAVIS_BUILD_DIR}${REPO}-${TRAVIS_TAG}-${TRAVIS_BUILD_NUMBER}-WIN64v
       cache:
         directories:
          - vs/sdl/
@@ -140,7 +140,7 @@ jobs:
           fi
       before_deploy:
         - cmake --build . --target install
-        - zip -9 ${RELEASE_FILE}.zip bin/*
+        - 7z a ${RELEASE_FILE}.zip bin/*
       deploy:
         provider: releases
         file: ${RELEASE_FILE}.zip
