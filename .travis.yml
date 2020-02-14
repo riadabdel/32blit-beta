@@ -119,7 +119,9 @@ jobs:
 
     - name: "Visual Studio (CMake)"
       os: windows
-      env: CMAKE_ARGS=-DSDL2_DIR=$TRAVIS_BUILD_DIR/vs/sdl
+      env:
+        - CMAKE_ARGS=-DSDL2_DIR=$TRAVIS_BUILD_DIR/vs/sdl
+        - RELEASE_FILE=${TRAVIS_BUILD_DIR}${REPO}-${TRAVIS_TAG}-${TRAVIS_BUILD_NUMBER}-WIN64
       cache:
         directories:
          - vs/sdl/
@@ -136,7 +138,15 @@ jobs:
             # move dirs up
             mv vs/sdl/SDL2-2.0.10/* vs/sdl
           fi
-
+      before_deploy:
+        - cmake --build . --target install
+        - zip -9 ${RELEASE_FILE}.zip bin/*
+      deploy:
+        provider: releases
+        file: ${RELEASE_FILE}.zip
+        on:
+          tags: true
+        edge: true
 
     - name: "Visual Studio (.sln)"
       os: windows
