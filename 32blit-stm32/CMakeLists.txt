@@ -65,6 +65,7 @@ list(APPEND SOURCES
 	Src/jpeg.c
 	Src/sound.cpp
 	Src/file.cpp
+	Src/jpeg.cpp
 	Src/adc.c
 	Src/debug.c
 	Src/dma.c
