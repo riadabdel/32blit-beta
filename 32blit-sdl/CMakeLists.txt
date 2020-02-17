@@ -1,6 +1,7 @@
 add_library(BlitHalSDL STATIC
 	File.cpp
 	Input.cpp
+	JPEG.cpp
 	Main.cpp
 	Renderer.cpp
 	Audio.cpp
@@ -10,10 +11,11 @@ add_library(BlitHalSDL STATIC
 if(EMSCRIPTEN)
 	target_compile_options(BlitHalSDL
 		PRIVATE
-			"-s;USE_SDL=2"
+			"-s;USE_SDL=2;-s ;USE_SDL_IMAGE=2"
 	)
 
-	set(SDL2_LIBRARIES "-s USE_SDL=2")
+	set(SDL2_LIBRARIES "-s USE_SDL=2" "-s USE_SDL_IMAGE=2")
+	set(SDL2_IMAGE_LIBRARY "-s USE_SDL_IMAGE=2")
 else()
 	# attempt to find the framework (find_package won't work as there's no config file)
 	if(APPLE)
@@ -36,9 +38,20 @@ else()
 			PRIVATE	${SDL2_INCLUDE_DIRS}
 		)
 	endif()
+
+	# find SDL2_image
+	# TODO: may need to be more complicated
+	find_path(SDL2_IMAGE_INCLUDE_DIR SDL_image.h
+		HINTS ${SDL2_DIR}
+		PATH_SUFFIXES SDL2 include/SDL2 include
+	)
+	target_include_directories(BlitHalSDL
+		PRIVATE	${SDL2_IMAGE_INCLUDE_DIR}
+	)
+	find_library(SDL2_IMAGE_LIBRARY NAMES SDL2_image HINTS ${SDL2_DIR})
 endif()
 
-target_link_libraries(BlitHalSDL PUBLIC BlitEngine ${SDL2_LIBRARIES})
+target_link_libraries(BlitHalSDL PUBLIC BlitEngine ${SDL2_LIBRARIES} ${SDL2_IMAGE_LIBRARY})
 
 # copy SDL2.dll to build/install dir for windows users
 if(SDL2_DLL)
