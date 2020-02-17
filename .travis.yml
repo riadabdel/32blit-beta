@@ -170,7 +170,7 @@ jobs:
             unzip SDL2_image.zip -d vs/sdl
             # move dirs up
             mv vs/sdl/SDL2-2.0.10/* vs/sdl
-            mv vs/sdl/SDL2_image-2.0.5/* vs/sdl
+            cp -r vs/sdl/SDL2_image-2.0.5/* vs/sdl
           fi
         - msbuild.exe vs/32blit.sln
 
