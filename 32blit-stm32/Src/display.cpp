@@ -146,7 +146,8 @@ namespace display {
     }*/
   }
 
-  void flip(const Surface &source) {        
+  void flip(const Surface &source) {
+    __disable_irq(); // Set PRIMASK
     static uint32_t flip_time = 0;
 
     // TODO: both flip implementations can we done via DMA2D which will save
@@ -232,6 +233,7 @@ namespace display {
         }
     }
 
+    __enable_irq(); // Clear PRIMASK
     // since the ltdc hardware pulls frame data directly over the memory bus
     // without passing through the mcu's cache layer we must invalidate the
     // affected area to ensure that all data has been committed into ram
