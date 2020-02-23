@@ -10,7 +10,7 @@
 #include "gpio.hpp"
 #include "file.hpp"
 #include "jpeg.hpp"
-
+#include "usb-cdc.hpp"
 
 #include "adc.h"
 #include "tim.h"
@@ -22,6 +22,7 @@
 #include "fatfs.h"
 #include "quadspi.h"
 #include "usbd_core.h"
+
 
 #include "32blit.hpp"
 #include "engine/api_private.hpp"
@@ -137,6 +138,7 @@ std::string battery_charge_status() {
 void render_yield() {
   if(display::needs_render) {
     blit::render(blit::now());
+    debug::render();
     display::enable_vblank_interrupt();
   }
 }
@@ -349,9 +351,8 @@ void blit_init() {
     blit::api.decode_jpeg_file = blit_decode_jpeg_file;
 
 
-  display::init();
-  
-  blit::init();
+    display::init();
+    blit::init();
 
 }
 

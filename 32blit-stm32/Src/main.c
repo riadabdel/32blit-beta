@@ -120,6 +120,7 @@ int main(void)
   /* Initialize all configured peripherals */
   gpio::init();
   sound::init();
+  cdc::init();
 
   //MX_GPIO_Init();
 
