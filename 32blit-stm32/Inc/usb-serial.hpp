@@ -5,7 +5,9 @@
 
 namespace cdc {
 
-  typedef bool (*CommandHandler)(char *data, uint32_t length);
+  enum class CommandState {STREAM, END, ERROR, TIMEOUT};
+
+  typedef CommandState (*CommandHandler)(CommandState state, char *data, uint32_t length);
 
   struct Packet {
     char data[64];

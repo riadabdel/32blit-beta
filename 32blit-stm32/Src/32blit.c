@@ -10,7 +10,6 @@
 #include "gpio.hpp"
 #include "file.hpp"
 #include "jpeg.hpp"
-#include "usb-cdc.hpp"
 
 #include "adc.h"
 #include "tim.h"
@@ -30,19 +29,21 @@
 #include "engine/running_average.hpp"
 
 #include "stdarg.h"
+
 using namespace blit;
 
-extern char __ltdc_start;
-extern char __fb_start;
 extern char itcm_text_start;
 extern char itcm_text_end;
 extern char itcm_data;
+
 extern USBD_HandleTypeDef hUsbDeviceHS;
 
 #define ADC_BUFFER_SIZE 32
 
 __attribute__((section(".dma_data"))) ALIGN_32BYTES(__IO uint16_t adc1data[ADC_BUFFER_SIZE]);
 __attribute__((section(".dma_data"))) ALIGN_32BYTES(__IO uint16_t adc3data[ADC_BUFFER_SIZE]);
+
+__attribute__((section(".persist"))) Persist persist;
 
 FATFS filesystem;
 FRESULT SD_Error = FR_INVALID_PARAMETER;
@@ -59,7 +60,7 @@ uint8_t battery_fault = 0;
 
 const uint32_t long_press_exit_time = 1000;
 
-__attribute__((section(".persist"))) Persist persist;
+
 
 void DFUBoot(void)
 {

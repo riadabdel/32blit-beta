@@ -54,7 +54,6 @@ list(APPEND SOURCES
 	Src/user_diskio.c
 	Src/fatfs.c
 	Src/fatfs_sd.c
-	Src/usb_otg.c
 	Src/usb_device.c
 	Src/usbd_conf.c
 	Src/usbd_desc.c
@@ -66,6 +65,8 @@ list(APPEND SOURCES
 	Src/sound.cpp
 	Src/file.cpp
 	Src/jpeg.cpp
+	Src/usb-serial.cpp
+	Src/core-debug.cpp
 	Src/adc.c
 	Src/debug.c
 	Src/dma.c
@@ -80,15 +81,7 @@ list(APPEND SOURCES
 	Src/tim.c
 	Src/rng.c
 	Src/32blit.c
-	Src/CDCLogging.c
 	startup_stm32h750xx.s
-	Src/usb-cdc.cpp
-	Src/core-debug.cpp
-	Src/CDCDataStream.cpp 
-	Src/CDCCommandStream.cpp 
-	Src/CDCCommandHandler.cpp 
-	Src/CDCResetHandler.cpp
-	Src/CDCInfoHandler.cpp 
 	Src/USBManager.cpp
 	Utilities/JPEG/jpeg_utils.c
 )
