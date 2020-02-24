@@ -5,6 +5,7 @@
 #include <cstdlib>
 
 #include "logo.hpp"
+#include "version.hpp"
 
 using namespace blit;
 
@@ -170,7 +171,8 @@ void render(uint32_t time) {
 
   }
 
-
+  std::string version_text = "Ver: " BLIT_BUILD_VER " Date: " BLIT_BUILD_DATE;
+  blit::screen.text(version_text, blit::minimal_font, blit::Point(blit::screen.bounds.w, blit::screen.bounds.h), true, blit::TextAlign::bottom_right);
 }
 
 void update(uint32_t time) {
