@@ -17,7 +17,8 @@ if (NOT DEFINED BLIT_ONCE)
 		set(BUILD_VER "DEV") # TODO: could parse something from git here
 	endif()
 
-	add_definitions(-DBLIT_BUILD_DATE="${BUILD_DATE}" -DBLIT_BUILD_VER="${BUILD_VER}")
+	configure_file(version.hpp.in version.hpp)
+	include_directories(${CMAKE_CURRENT_BINARY_DIR})
 	
 	if(WIN32)
 		add_definitions("-DWIN32")
