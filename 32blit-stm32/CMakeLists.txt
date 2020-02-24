@@ -57,7 +57,6 @@ list(APPEND SOURCES
 	Src/usb_device.c
 	Src/usbd_conf.c
 	Src/usbd_desc.c
-	Src/usbd_cdc_if.c
 	Src/usbd_storage_if.c	
 	Src/display.cpp
 	Src/gpio.cpp
