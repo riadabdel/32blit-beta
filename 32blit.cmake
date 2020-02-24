@@ -7,6 +7,17 @@ if (NOT DEFINED BLIT_ONCE)
 	if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
 		set(CMAKE_BUILD_TYPE "Release")
 	endif()
+
+	# version variables
+	string(TIMESTAMP BUILD_DATE "%Y-%m-%d" UTC)
+	if(DEFINED ENV{TRAVIS_TAG})
+		# travis release
+		set(BUILD_VER $ENV{TRAVIS_TAG})
+	else()
+		set(BUILD_VER "DEV") # TODO: could parse something from git here
+	endif()
+
+	add_definitions(-DBLIT_BUILD_DATE="${BUILD_DATE}" -DBLIT_BUILD_VER="${BUILD_VER}")
 	
 	if(WIN32)
 		add_definitions("-DWIN32")
