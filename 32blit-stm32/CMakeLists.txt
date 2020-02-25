@@ -81,7 +81,6 @@ list(APPEND SOURCES
 	Src/rng.c
 	Src/32blit.c
 	Src/CDCLogging.c
-	startup_stm32h750xx.s
 	Src/CDCDataStream.cpp 
 	Src/CDCCommandStream.cpp 
 	Src/CDCCommandHandler.cpp 
@@ -92,7 +91,6 @@ list(APPEND SOURCES
 )
 
 set_source_files_properties(
-	startup_stm32h750xx.s
 
 	Src/main.c
   	Src/usbd_msc_scsi.c
@@ -106,7 +104,9 @@ set_source_files_properties(
 	PROPERTIES LANGUAGE CXX
 )
 
-add_library(BlitHalSTM32 OBJECT ${SOURCES})
+set_source_files_properties( startup_stm32h750xx_ext.s startup_stm32h750xx_int.s PROPERTIES LANGUAGE CXX )
+
+add_library(BlitHalSTM32 OBJECT ${SOURCES} startup_stm32h750xx_int.s)
 
 set(INCLUDE_DIRS 
 	${CMAKE_CURRENT_SOURCE_DIR}/Inc
@@ -150,7 +150,7 @@ target_compile_definitions(BlitHalSTM32
 target_compile_options(BlitHalSTM32 PUBLIC "$<$<CONFIG:RELEASE>:-Os>")
 
 # 2nd build for external flash
-add_library(BlitHalSTM32Ext OBJECT ${SOURCES})
+add_library(BlitHalSTM32Ext OBJECT ${SOURCES} startup_stm32h750xx_ext.s)
 
 target_include_directories(BlitHalSTM32Ext
 	PRIVATE
