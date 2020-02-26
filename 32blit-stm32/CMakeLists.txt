@@ -189,7 +189,10 @@ endfunction()
 function(blit_executable_pic NAME SOURCES)
 	set_source_files_properties( ${EXT_STARTUP} PROPERTIES LANGUAGE CXX )
 	add_executable(${NAME} ${SOURCES} ${ARGN} ${EXT_STARTUP})
-	set_target_properties(${NAME} PROPERTIES LINK_FLAGS "-specs=nano.specs  -T ${MCU_LINKER_SCRIPT} ${MCU_LINKER_FLAGS_EXT}") #-fPIC
+	set_target_properties(${NAME} PROPERTIES
+		COMPILE_FLAGS -fPIC -mno-pic-data-is-text-relative -mno-single-pic-base
+		LINK_FLAGS "-specs=nano.specs -fPIC -T ${MCU_LINKER_SCRIPT} ${MCU_LINKER_FLAGS_EXT}"
+	)
 	set_target_properties(${NAME} PROPERTIES LINK_DEPENDS ${MCU_LINKER_SCRIPT} SUFFIX ".elf")
 	blit_executable_common(${NAME})
 endfunction()
