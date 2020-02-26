@@ -112,7 +112,9 @@ g_pfnVectors:
   .word  _Z6renderm
   .word  _ZN4blit4tickEm
   .word  do_init
-
+  .word 0 //FIXME
+  .word _gotstart
+  .word _gotend
 /*
 .weak      render
 .thumb_set render,main

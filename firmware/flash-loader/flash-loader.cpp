@@ -107,7 +107,11 @@ bool FlashLoader::Flash(const char *pszFilename)
 		// get file length
 		FSIZE_t uSize = f_size(&file);
 		FSIZE_t uTotalBytesRead = 0;
+
+		size_t flashOffset = 0;
 		size_t uOffset = 0;
+
+		uint32_t got_start = 0, got_end = 0;
 
 		if(uSize)
 		{
@@ -123,13 +127,35 @@ bool FlashLoader::Flash(const char *pszFilename)
 				UINT uBytesRead = 0;
 				res = f_read(&file, (void *)m_buffer, BUFFER_SIZE, &uBytesRead);
 
+				// PIC binary
+				uint32_t magic = *((uint32_t *)m_buffer);
+				if(uOffset == 0 && magic == 0x54494C42 /*BLIT*/) {
+					got_start = *((uint32_t *)m_buffer + 5) - 0x90000000;
+					got_end = *((uint32_t *)m_buffer + 6) - 0x90000000;
+				}
+
+				// GOT patching
+				if(uOffset < got_end && uOffset >= got_start)
+				{
+					for(size_t i = got_start; i < got_end; i += 4)
+					{
+						if(i < uOffset || i - uOffset >= BUFFER_SIZE)
+							continue;
+						
+						uint32_t val = *(uint32_t *)(m_buffer + i - uOffset);
+
+						if(val >= 0x90000000)
+							*(uint32_t *)(m_buffer + i) = val + flashOffset;
+					}
+				}
+
 				if(!res)
 				{
 					if(uBytesRead)
 					{
-						if(QSPI_OK == qspi_write_buffer(uOffset, m_buffer, uBytesRead))
+						if(QSPI_OK == qspi_write_buffer(uOffset + flashOffset, m_buffer, uBytesRead))
 						{
-							if(QSPI_OK == qspi_read_buffer(uOffset, m_verifyBuffer, uBytesRead))
+							if(QSPI_OK == qspi_read_buffer(uOffset + flashOffset, m_verifyBuffer, uBytesRead))
 							{
 								// compare buffers
 								bool bVerified = true;

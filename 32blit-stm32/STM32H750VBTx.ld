@@ -74,6 +74,14 @@ SECTIONS
     . = ALIGN(4);
   } >FLASH
 
+  .got :
+  {
+    . = ALIGN(4);
+    _gotstart = .;
+    *(.got*)
+    _gotend = .;
+  } > FLASH
+
   /* The program code and other data goes into FLASH */
   .text :
   {
@@ -136,7 +144,6 @@ SECTIONS
   {
     . = ALIGN(4);
     _sdata = .;        /* create a global symbol at data start */
-    *(.got*)
     *(.data)           /* .data sections */
     *(.data*)          /* .data* sections */
 
