@@ -9,8 +9,8 @@ extern "C" {
 }
 
 void init(void) {
-    //set_screen_mode(hires);
-    api.LED.b = 200;
+    set_screen_mode(hires);
+    LED.b = 200;
 }
 
 void update(uint32_t time_ms) {
