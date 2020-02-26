@@ -783,61 +783,67 @@ void blit_switch_execution(void)
   #else
   persist.reset_target = prtFirmware;
   #endif
-  blit::api.LED.b = 0;
+
+	// enable qspi memory mapping if needed
+	if(EXTERNAL_LOAD_ADDRESS >= 0x90000000)
+		qspi_enable_memorymapped_mode();
+
+  uint32_t magic = (*(__IO uint32_t*) (EXTERNAL_LOAD_ADDRESS));
+
+  if(magic == 0x54494C42 /*BLIT*/) {
+    pFunction init = (pFunction) (*(__IO uint32_t*) (EXTERNAL_LOAD_ADDRESS + 12));
+    init();
+
+    blit::render = (renderFunction) (*(__IO uint32_t*) (EXTERNAL_LOAD_ADDRESS + 4));
+    blit::update = (renderFunction) (*(__IO uint32_t*) (EXTERNAL_LOAD_ADDRESS + 8));
+    return;
+  }
+
+  blit::LED.b = 0;
   // Stop the ADC DMA
-  //HAL_ADC_Stop_DMA(&hadc1);
-  //HAL_ADC_Stop_DMA(&hadc3);
+  HAL_ADC_Stop_DMA(&hadc1);
+  HAL_ADC_Stop_DMA(&hadc3);
 
   // Stop the audio
-  //HAL_TIM_Base_Stop_IT(&htim6);
-  //HAL_DAC_Stop(&hdac1, DAC_CHANNEL_2);
+  HAL_TIM_Base_Stop_IT(&htim6);
+  HAL_DAC_Stop(&hdac1, DAC_CHANNEL_2);
 
   // Stop system button timer
   HAL_TIM_Base_Stop_IT(&htim2);
 
   // stop USB
-  //USBD_Stop(&hUsbDeviceHS);
+  USBD_Stop(&hUsbDeviceHS);
   
   // Disable all the interrupts... just to be sure
-  //HAL_NVIC_DisableIRQ(LTDC_IRQn);
-  //HAL_NVIC_DisableIRQ(ADC_IRQn);
-  //HAL_NVIC_DisableIRQ(ADC3_IRQn);
-  //HAL_NVIC_DisableIRQ(DMA1_Stream0_IRQn);
-  //HAL_NVIC_DisableIRQ(DMA1_Stream1_IRQn);
-  //HAL_NVIC_DisableIRQ(TIM6_DAC_IRQn);
-  //HAL_NVIC_DisableIRQ(OTG_HS_IRQn);
-  //HAL_NVIC_DisableIRQ(EXTI9_5_IRQn);
-  //HAL_NVIC_DisableIRQ(TIM2_IRQn);
+  HAL_NVIC_DisableIRQ(LTDC_IRQn);
+  HAL_NVIC_DisableIRQ(ADC_IRQn);
+  HAL_NVIC_DisableIRQ(ADC3_IRQn);
+  HAL_NVIC_DisableIRQ(DMA1_Stream0_IRQn);
+  HAL_NVIC_DisableIRQ(DMA1_Stream1_IRQn);
+  HAL_NVIC_DisableIRQ(TIM6_DAC_IRQn);
+  HAL_NVIC_DisableIRQ(OTG_HS_IRQn);
+  HAL_NVIC_DisableIRQ(EXTI9_5_IRQn);
+  HAL_NVIC_DisableIRQ(TIM2_IRQn);
 
 	volatile uint32_t uAddr = EXTERNAL_LOAD_ADDRESS;
-	// enable qspi memory mapping if needed
-	if(EXTERNAL_LOAD_ADDRESS >= 0x90000000)
-		qspi_enable_memorymapped_mode();
 
 	/* Disable I-Cache */
-	//SCB_DisableICache();
+	SCB_DisableICache();
 
 	/* Disable D-Cache */
-	//SCB_DisableDCache();
+	SCB_DisableDCache();
 
 	/* Disable Systick interrupt */
-	//SysTick->CTRL = 0;
+	SysTick->CTRL = 0;
 
 	/* Initialize user application's Stack Pointer & Jump to user application */
-	//JumpToApplication = (pFunction) (*(__IO uint32_t*) (EXTERNAL_LOAD_ADDRESS + 4));
-	//__set_MSP(*(__IO uint32_t*) EXTERNAL_LOAD_ADDRESS);
-	//JumpToApplication();
-
-	JumpToApplication = (pFunction) (*(__IO uint32_t*) (EXTERNAL_LOAD_ADDRESS + 12));
-  JumpToApplication();
-
-  blit::render = (renderFunction) (*(__IO uint32_t*) (EXTERNAL_LOAD_ADDRESS + 4));
-  blit::update = (renderFunction) (*(__IO uint32_t*) (EXTERNAL_LOAD_ADDRESS + 8));
+	JumpToApplication = (pFunction) (*(__IO uint32_t*) (EXTERNAL_LOAD_ADDRESS + 4));
+	__set_MSP(*(__IO uint32_t*) EXTERNAL_LOAD_ADDRESS);
+	JumpToApplication();
 
 	/* We should never get here as execution is now on user application */
-	/*while(1)
+	while(1)
 	{
-	}*/
-  //blit::api.LED.b = 255;
+	}
 }
 

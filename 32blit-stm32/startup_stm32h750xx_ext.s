@@ -115,7 +115,7 @@ LoopFillZerobss:
   #.size  g_pfnVectors, .-g_pfnVectors
 
 g_pfnVectors:
-  .word  _estack
+  .word  0x54494C42
   .word  render
   .word  update
   .word  Reset_Handler

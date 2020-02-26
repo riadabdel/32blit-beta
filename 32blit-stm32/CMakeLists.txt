@@ -150,7 +150,7 @@ target_compile_definitions(BlitHalSTM32
 target_compile_options(BlitHalSTM32 PUBLIC "$<$<CONFIG:RELEASE>:-Os>")
 
 # 2nd build for external flash
-add_library(BlitHalSTM32Ext OBJECT ${SOURCES} startup_stm32h750xx_ext.s)
+add_library(BlitHalSTM32Ext OBJECT ${SOURCES} startup_stm32h750xx_int.s)
 
 target_include_directories(BlitHalSTM32Ext
 	PRIVATE
@@ -187,7 +187,7 @@ endfunction()
 function(blit_executable_pic NAME SOURCES)
 	set_source_files_properties( ../../32blit-stm32/startup_stm32h750xx_ext.s PROPERTIES LANGUAGE CXX )
 	add_executable(${NAME} ${SOURCES} ../../32blit-stm32/startup_stm32h750xx_ext.s ${ARGN})
-	set_target_properties(${NAME} PROPERTIES LINK_FLAGS "-specs=nano.specs -fPIC -T ${MCU_LINKER_SCRIPT} ${MCU_LINKER_FLAGS_EXT}")
+	set_target_properties(${NAME} PROPERTIES LINK_FLAGS "-specs=nano.specs  -T ${MCU_LINKER_SCRIPT} ${MCU_LINKER_FLAGS_EXT}") #-fPIC
 	set_target_properties(${NAME} PROPERTIES LINK_DEPENDS ${MCU_LINKER_SCRIPT} SUFFIX ".elf")
 	blit_executable_common(${NAME})
 endfunction()
