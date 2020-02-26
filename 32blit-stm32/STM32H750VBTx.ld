@@ -136,6 +136,7 @@ SECTIONS
   {
     . = ALIGN(4);
     _sdata = .;        /* create a global symbol at data start */
+    *(.got*)
     *(.data)           /* .data sections */
     *(.data*)          /* .data* sections */
 
