@@ -926,11 +926,11 @@ void blit_switch_execution(uint32_t address)
       persist.last_game_offset = address;
 
       // load function pointers
-      auto init = (BlitInitFunction)((uint8_t *)game_header->init);
-      init();
+      auto init = (BlitInitFunction)((uint8_t *)game_header->init + address);
+      init(address);
 
-      blit::render = user_render = (BlitRenderFunction) ((uint8_t *)game_header->render);
-      do_tick = user_tick = (BlitTickFunction) ((uint8_t *)game_header->tick);
+      blit::render = user_render = (BlitRenderFunction) ((uint8_t *)game_header->render + address);
+      do_tick = user_tick = (BlitTickFunction) ((uint8_t *)game_header->tick + address);
       return;
     }
     // anything flashed at a non-zero offset should have a valid header
