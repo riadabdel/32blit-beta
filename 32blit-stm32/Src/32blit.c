@@ -800,7 +800,7 @@ void blit_switch_execution(void)
     blit::render = (renderFunction) (*(__IO uint32_t*) (EXTERNAL_LOAD_ADDRESS + 4));
     blit::update = (renderFunction) (*(__IO uint32_t*) (EXTERNAL_LOAD_ADDRESS + 8));
 
-    ::get_audio_frame = (audioFunction) (*((__IO uint32_t*) (EXTERNAL_LOAD_ADDRESS + offset + 16)) + offset);
+    ::get_audio_frame = (audioFunction) *((__IO uint32_t*) (EXTERNAL_LOAD_ADDRESS + 16));
     return;
   }
 
