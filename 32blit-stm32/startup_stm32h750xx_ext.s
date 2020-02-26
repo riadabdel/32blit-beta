@@ -119,6 +119,7 @@ g_pfnVectors:
   .word  _Z6renderm
   .word  _Z6updatem
   .word  Reset_Handler
+  .word _ZN4blit15get_audio_frameEv
 
 /*
 .weak      render
