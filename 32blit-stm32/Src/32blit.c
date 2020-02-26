@@ -791,16 +791,20 @@ void blit_switch_execution(void)
 	if(EXTERNAL_LOAD_ADDRESS >= 0x90000000)
 		qspi_enable_memorymapped_mode();
 
-  uint32_t magic = (*(__IO uint32_t*) (EXTERNAL_LOAD_ADDRESS));
+  uint32_t offset = 0;
+
+  auto app_ptr =  (__IO uint32_t*) (EXTERNAL_LOAD_ADDRESS + offset);
+
+  uint32_t magic = app_ptr[0];
 
   if(magic == 0x54494C42 /*BLIT*/) {
-    pFunction init = (pFunction) (*(__IO uint32_t*) (EXTERNAL_LOAD_ADDRESS + 12));
-    init();
+    auto init = (renderFunction) (app_ptr[3] + offset);
+    init(offset);
 
-    blit::render = (renderFunction) (*(__IO uint32_t*) (EXTERNAL_LOAD_ADDRESS + 4));
-    blit::update = (renderFunction) (*(__IO uint32_t*) (EXTERNAL_LOAD_ADDRESS + 8));
+    blit::render = (renderFunction) (app_ptr[1] + offset);
+    blit::update = (renderFunction) (app_ptr[2] + offset);
 
-    ::get_audio_frame = (audioFunction) *((__IO uint32_t*) (EXTERNAL_LOAD_ADDRESS + 16));
+    ::get_audio_frame = (audioFunction) (app_ptr[4] + offset);
     return;
   }
 
