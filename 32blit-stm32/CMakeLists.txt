@@ -170,6 +170,8 @@ set(MCU_LINKER_SCRIPT "${CMAKE_CURRENT_LIST_DIR}/${MCU_LINKER_SCRIPT}")
 set(MCU_LINKER_SCRIPT "${MCU_LINKER_SCRIPT}" PARENT_SCOPE)
 set(MCU_LINKER_SCRIPT_EXT "${CMAKE_CURRENT_LIST_DIR}/${MCU_LINKER_SCRIPT_EXT}" PARENT_SCOPE)
 
+set(EXT_STARTUP ${CMAKE_CURRENT_SOURCE_DIR}/startup_stm32h750xx_ext.s PARENT_SCOPE)
+
 find_package(PythonInterp 3 REQUIRED)
 
 function(blit_executable_common NAME)
@@ -186,7 +188,7 @@ endfunction()
 
 function(blit_executable_pic NAME SOURCES)
 	set_source_files_properties( ../../32blit-stm32/startup_stm32h750xx_ext.s PROPERTIES LANGUAGE CXX )
-	add_executable(${NAME} ${SOURCES} ../../32blit-stm32/startup_stm32h750xx_ext.s ${ARGN})
+	add_executable(${NAME} ${EXT_STARTUP} ${SOURCES} ${ARGN})
 	set_target_properties(${NAME} PROPERTIES LINK_FLAGS "-specs=nano.specs  -T ${MCU_LINKER_SCRIPT} ${MCU_LINKER_FLAGS_EXT}") #-fPIC
 	set_target_properties(${NAME} PROPERTIES LINK_DEPENDS ${MCU_LINKER_SCRIPT} SUFFIX ".elf")
 	blit_executable_common(${NAME})
