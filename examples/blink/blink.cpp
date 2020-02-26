@@ -2,12 +2,6 @@
 
 using namespace blit;
 
-extern "C" {
-    void init();
-    void update(uint32_t time_ms);
-    void render(uint32_t time_ms);
-}
-
 void init(void) {
     set_screen_mode(hires);
     LED.b = 200;

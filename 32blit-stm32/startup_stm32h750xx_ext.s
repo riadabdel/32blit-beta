@@ -99,7 +99,7 @@ LoopFillZerobss:
 // Call static constructors
   bl __libc_init_array
 // Call the application's entry point.
-  bl  init
+  bl  _Z4initv
   pop {pc}
 
 /*****************************************************************************
@@ -116,8 +116,8 @@ LoopFillZerobss:
 
 g_pfnVectors:
   .word  0x54494C42
-  .word  render
-  .word  update
+  .word  _Z6renderm
+  .word  _Z6updatem
   .word  Reset_Handler
 
 /*
