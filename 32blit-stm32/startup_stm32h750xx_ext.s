@@ -95,11 +95,12 @@ LoopFillZerobss:
   cmp  r2, r3
   bcc  FillZerobss
 
+  push {lr}
 // Call static constructors
-//    bl __libc_init_array
+  bl __libc_init_array
 // Call the application's entry point.
-  bl  main
-  bx  lr
+  bl  init
+  pop {pc}
 
 /*****************************************************************************
 *
@@ -117,7 +118,7 @@ g_pfnVectors:
   .word  _estack
   .word  render
   .word  update
-  .word  init
+  .word  Reset_Handler
 
 /*
 .weak      render
