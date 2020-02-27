@@ -123,6 +123,8 @@ g_pfnVectors:
   .word _ZN4blit15get_audio_frameEv
   .word _gotstart
   .word _gotend
+  .word __preinit_array_start
+  .word __fini_array_end
 
 /*
 .weak      render
