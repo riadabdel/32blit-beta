@@ -115,6 +115,9 @@ g_pfnVectors:
   .word 0 //FIXME
   .word _gotstart
   .word _gotend
+  .word __preinit_array_start
+  .word __fini_array_end
+
 /*
 .weak      render
 .thumb_set render,main

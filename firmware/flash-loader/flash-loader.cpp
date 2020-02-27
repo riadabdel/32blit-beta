@@ -112,6 +112,7 @@ bool FlashLoader::Flash(const char *pszFilename)
 		size_t uOffset = 0;
 
 		uint32_t got_start = 0, got_end = 0;
+		uint32_t initfini_start = 0, initfini_end = 0;
 
 		if(uSize)
 		{
@@ -132,6 +133,9 @@ bool FlashLoader::Flash(const char *pszFilename)
 				if(uOffset == 0 && magic == 0x54494C42 /*BLIT*/) {
 					got_start = *((uint32_t *)m_buffer + 5) - 0x90000000;
 					got_end = *((uint32_t *)m_buffer + 6) - 0x90000000;
+
+					initfini_start = *((uint32_t *)m_buffer + 7) - 0x90000000;
+					initfini_end = *((uint32_t *)m_buffer + 8) - 0x90000000;
 				}
 				else if(uOffset == 0)
 					flashOffset = 0;
@@ -148,6 +152,18 @@ bool FlashLoader::Flash(const char *pszFilename)
 
 						if(val >= 0x90000000)
 							*(uint32_t *)(m_buffer + i - uOffset) = val + flashOffset;
+					}
+				}
+
+				// global init patching
+				if(uOffset < initfini_end && uOffset + BUFFER_SIZE >= initfini_start)
+				{
+					for(size_t i = initfini_start; i < initfini_end; i += 4)
+					{
+						if(i < uOffset || i - uOffset >= BUFFER_SIZE)
+							continue;
+						
+						*(uint32_t *)(m_buffer + i - uOffset) += flashOffset;
 					}
 				}
 
