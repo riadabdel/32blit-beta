@@ -147,7 +147,7 @@ bool FlashLoader::Flash(const char *pszFilename)
 						uint32_t val = *(uint32_t *)(m_buffer + i - uOffset);
 
 						if(val >= 0x90000000)
-							*(uint32_t *)(m_buffer + i) = val + flashOffset;
+							*(uint32_t *)(m_buffer + i - uOffset) = val + flashOffset;
 					}
 				}
 
