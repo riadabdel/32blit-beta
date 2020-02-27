@@ -133,9 +133,11 @@ bool FlashLoader::Flash(const char *pszFilename)
 					got_start = *((uint32_t *)m_buffer + 5) - 0x90000000;
 					got_end = *((uint32_t *)m_buffer + 6) - 0x90000000;
 				}
+				else if(uOffset == 0)
+					flashOffset = 0;
 
 				// GOT patching
-				if(uOffset < got_end && uOffset >= got_start)
+				if(uOffset < got_end && uOffset + BUFFER_SIZE >= got_start)
 				{
 					for(size_t i = got_start; i < got_end; i += 4)
 					{
