@@ -776,9 +776,6 @@ pFunction JumpToApplication;
 
 typedef void(*renderFunction)(uint32_t time_ms);
 
-typedef uint16_t (*audioFunction)(void);
-extern uint16_t (*get_audio_frame)();
-
 void blit_switch_execution(void)
 {
   #if EXTERNAL_LOAD_ADDRESS == 0x90000000
@@ -803,8 +800,6 @@ void blit_switch_execution(void)
 
     blit::render = (renderFunction) (app_ptr[1] + offset);
     blit::update = (renderFunction) (app_ptr[2] + offset);
-
-    ::get_audio_frame = (audioFunction) (app_ptr[4] + offset);
     return;
   }
 

@@ -120,7 +120,7 @@ g_pfnVectors:
   .word  _Z6renderm
   .word  _Z6updatem
   .word  Reset_Handler
-  .word _ZN4blit15get_audio_frameEv
+  .word 0 // FIXME: hole
   .word _gotstart
   .word _gotend
   .word __preinit_array_start

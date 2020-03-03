@@ -8,8 +8,6 @@
 TIM_HandleTypeDef htim6;
 DAC_HandleTypeDef hdac1;
 
-uint16_t (*get_audio_frame)() = blit::get_audio_frame;
-
 void TIM6_DAC_IRQHandler(void) {  
 
   if (__HAL_TIM_GET_FLAG(&htim6, TIM_FLAG_UPDATE) != RESET)
@@ -27,7 +25,7 @@ void TIM6_DAC_IRQHandler(void) {
       }
 
       // timer period elapsed, update audio sample
-      hdac1.Instance->DHR12R2 = ::get_audio_frame() >> 4;
+      hdac1.Instance->DHR12R2 = blit::get_audio_frame() >> 4;
     }
   }
 }
