@@ -8,6 +8,7 @@
 #include <cstring>
 #include <stdio.h>
 #include <stdlib.h>
+#include <set>
 using namespace blit;
 
 extern QSPI_HandleTypeDef hqspi;
@@ -120,12 +121,33 @@ bool FlashLoader::Flash(const char *pszFilename)
 			QSPI_WriteEnable(&hqspi);
 			qspi_chip_erase();
 
+			// check for prepended relocation info
+			UINT uBytesRead = 0;
+			char buf[4];
+			f_read(&file, buf, 4, &uBytesRead);
+			std::set<uint32_t> relocation_offsets;
+
+			if(memcmp(buf, "RELO", 4) == 0) {
+				uint32_t num_relocs;
+				f_read(&file, (void *)&num_relocs, 4, &uBytesRead);
+
+				for(auto i = 0u; i < num_relocs; i++) {
+					uint32_t reloc_offset;
+					f_read(&file, (void *)&reloc_offset, 4, &uBytesRead);
+
+					relocation_offsets.insert(reloc_offset - 0x90000000);
+				}
+
+				uSize -= num_relocs * 4 + 8; // size of relocation data
+			} else {
+				f_lseek(&file, 0);
+			}
+
 			bool bFinished = false;
 
 			while(!bFinished)
 			{
 				// limited ram so a bit at a time
-				UINT uBytesRead = 0;
 				res = f_read(&file, (void *)m_buffer, BUFFER_SIZE, &uBytesRead);
 
 				// PIC binary
@@ -164,6 +186,13 @@ bool FlashLoader::Flash(const char *pszFilename)
 							continue;
 						
 						*(uint32_t *)(m_buffer + i - uOffset) += flashOffset;
+					}
+				}
+
+				// relocation patching
+				for(auto off = uOffset; off != uOffset + uBytesRead; off += 4) {
+					if(relocation_offsets.count(off)) {
+						*(uint32_t *)(m_buffer + off - uOffset) += flashOffset;
 					}
 				}
 

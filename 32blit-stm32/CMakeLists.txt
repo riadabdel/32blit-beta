@@ -191,10 +191,15 @@ function(blit_executable_pic NAME SOURCES)
 	add_executable(${NAME} ${SOURCES} ${ARGN} ${EXT_STARTUP})
 	set_target_properties(${NAME} PROPERTIES
 		COMPILE_FLAGS "-fPIC -mno-pic-data-is-text-relative -mno-single-pic-base"
-		LINK_FLAGS "-specs=nano.specs -fPIC -T ${MCU_LINKER_SCRIPT} ${MCU_LINKER_FLAGS_EXT}"
+		LINK_FLAGS "-specs=nano.specs -fPIC -T ${MCU_LINKER_SCRIPT} ${MCU_LINKER_FLAGS_EXT} -Wl,--emit-relocs"
 	)
 	set_target_properties(${NAME} PROPERTIES LINK_DEPENDS ${MCU_LINKER_SCRIPT} SUFFIX ".elf")
 	blit_executable_common(${NAME})
+
+	add_custom_command(TARGET ${NAME} POST_BUILD
+		COMMENT "Building ${NAME}.relocs"
+		COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_RELOC_TOOL} $<TARGET_FILE:${NAME}> ${NAME}.bin ${NAME}.reloc.bin
+	)
 endfunction()
 
 function(blit_executable NAME SOURCES)
