@@ -196,11 +196,16 @@ function(blit_executable NAME SOURCES)
 
 	set_target_properties(${NAME} PROPERTIES
 		COMPILE_FLAGS "-fPIC -mno-pic-data-is-text-relative -mno-single-pic-base"
-		LINK_FLAGS "-specs=nano.specs -u _printf_float -fPIC -T ${MCU_LINKER_SCRIPT} ${MCU_LINKER_FLAGS_EXT}"
+		LINK_FLAGS "-specs=nano.specs -u _printf_float -fPIC -T ${MCU_LINKER_SCRIPT} ${MCU_LINKER_FLAGS_EXT} -Wl,--emit-relocs"
 	)
 	set_target_properties(${NAME} PROPERTIES LINK_DEPENDS ${MCU_LINKER_SCRIPT} SUFFIX ".elf")
 
 	blit_executable_common(${NAME})
+
+	add_custom_command(TARGET ${NAME} POST_BUILD
+		COMMENT "Building ${NAME}.reloc.bin"
+		COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_RELOC_TOOL} $<TARGET_FILE:${NAME}> ${NAME}.bin ${NAME}.reloc.bin
+	)
 
 	if(32BLIT_TOOL)
 		add_custom_target(${NAME}.flash DEPENDS ${NAME} COMMAND ${32BLIT_TOOL} PROG ${FLASH_PORT} ${NAME}.bin)
