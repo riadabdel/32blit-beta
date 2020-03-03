@@ -112,7 +112,7 @@ g_pfnVectors:
   .word  _Z6renderm
   .word  _ZN4blit4tickEm
   .word  do_init
-  .word 0 //FIXME
+  .word 0 // FIXME: hole
   .word _gotstart
   .word _gotend
   .word __preinit_array_start
