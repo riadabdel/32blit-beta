@@ -776,6 +776,8 @@ char *get_fr_err_text(FRESULT err){
 typedef  void (*pFunction)(void);
 pFunction JumpToApplication;
 
+typedef void(*renderFunction)(uint32_t);
+
 void blit_switch_execution(void)
 {
   #if EXTERNAL_LOAD_ADDRESS == 0x90000000
@@ -786,6 +788,21 @@ void blit_switch_execution(void)
 
   // Reset button state, this prevents the user app immediately seeing the last button transition used to launch the game
   buttons = 0;
+
+	// enable qspi memory mapping if needed
+	if(EXTERNAL_LOAD_ADDRESS >= 0x90000000)
+		qspi_enable_memorymapped_mode();
+
+  uint32_t magic = (*(__IO uint32_t*) (EXTERNAL_LOAD_ADDRESS));
+
+  if(magic == 0x54494C42 /*BLIT*/) {
+    pFunction init = (pFunction) (*(__IO uint32_t*) (EXTERNAL_LOAD_ADDRESS + 12));
+    init();
+
+    blit::render = (renderFunction) (*(__IO uint32_t*) (EXTERNAL_LOAD_ADDRESS + 4));
+    blit::update = (renderFunction) (*(__IO uint32_t*) (EXTERNAL_LOAD_ADDRESS + 8));
+    return;
+  }
 
   // Stop the ADC DMA
   HAL_ADC_Stop_DMA(&hadc1);
@@ -813,9 +830,6 @@ void blit_switch_execution(void)
   HAL_NVIC_DisableIRQ(TIM2_IRQn);
 
 	volatile uint32_t uAddr = EXTERNAL_LOAD_ADDRESS;
-	// enable qspi memory mapping if needed
-	if(EXTERNAL_LOAD_ADDRESS >= 0x90000000)
-		qspi_enable_memorymapped_mode();
 
 	/* Disable I-Cache */
 	SCB_DisableICache();
