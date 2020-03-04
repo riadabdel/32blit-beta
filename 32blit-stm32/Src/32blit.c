@@ -60,6 +60,10 @@ const uint32_t long_press_exit_time = 1000;
 
 __attribute__((section(".persist"))) Persist persist;
 
+// pointers to user code
+static void (*user_update)(uint32_t time) = nullptr;
+static void (*user_render)(uint32_t time) = nullptr;
+
 void DFUBoot(void)
 {
   // Set the special magic word value that's checked by the assembly entry Point upon boot
@@ -445,13 +449,13 @@ void blit_menu_update(uint32_t time) {
 }
 
 void blit_menu_render(uint32_t time) {
-  #if EXTERNAL_LOAD_ADDRESS == 0x90000000  // TODO We probably need a nicer way of detecting that we're compiling a firmware build (-DFIRMWARE maybe?)
+
   // Don't attempt to render firmware game selection menu behind system menu
   // At the moment `render` handles input in the firmware, so this results
   // in all kinds of fun an exciting weirdness.
-  #else
-  ::render(time);
-  #endif
+  if(user_render)
+    user_render(time);
+
   int screen_width = 160;
   int screen_height = 120;
   if (display::mode == blit::ScreenMode::hires) {
@@ -561,8 +565,14 @@ void blit_menu_render(uint32_t time) {
 
 void blit_menu() {
   if(blit::update == blit_menu_update) {
-    blit::update = ::update;
-    blit::render = ::render;
+    if (user_update) {
+      // user code was running
+      blit::update = user_update;
+      blit::render = user_render;
+    } else {
+      blit::update = ::update;
+      blit::render = ::render;
+    }
   }
   else
   {
@@ -799,8 +809,8 @@ void blit_switch_execution(void)
     pFunction init = (pFunction) (*(__IO uint32_t*) (EXTERNAL_LOAD_ADDRESS + 12));
     init();
 
-    blit::render = (renderFunction) (*(__IO uint32_t*) (EXTERNAL_LOAD_ADDRESS + 4));
-    blit::update = (renderFunction) (*(__IO uint32_t*) (EXTERNAL_LOAD_ADDRESS + 8));
+    blit::render = user_render = (renderFunction) (*(__IO uint32_t*) (EXTERNAL_LOAD_ADDRESS + 4));
+    blit::update = user_update = (renderFunction) (*(__IO uint32_t*) (EXTERNAL_LOAD_ADDRESS + 8));
     return;
   }
 
