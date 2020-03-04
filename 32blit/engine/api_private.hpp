@@ -12,6 +12,9 @@
 #include "../types/vec3.hpp"
 
 namespace blit {
+
+  using AllocateCallback = uint8_t *(*)(size_t);
+
   #pragma pack(push, 4)
   struct API {
     uint32_t buttons;
@@ -49,8 +52,8 @@ namespace blit {
     uint32_t (*GetMaxUsTimer)(void);
 
     // jepg
-    JPEGImage (*decode_jpeg_buffer)(uint8_t *ptr, uint32_t len);
-    JPEGImage (*decode_jpeg_file)(std::string filename);
+    JPEGImage (*decode_jpeg_buffer)(uint8_t *ptr, uint32_t len, AllocateCallback alloc);
+    JPEGImage (*decode_jpeg_file)(std::string filename, AllocateCallback alloc);
   
   };
   #pragma pack(pop)
