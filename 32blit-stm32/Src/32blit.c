@@ -378,11 +378,7 @@ std::string menu_name (MenuItem item) {
     case VOLUME: return "Volume";
     case DFU: return "DFU Mode";
     case SHIPPING: return "Power Off";
-#if EXTERNAL_LOAD_ADDRESS == 0x90000000
-    case SWITCH_EXE: return "Launch Game";
-#else
-    case SWITCH_EXE: return "Exit Game";
-#endif
+    case SWITCH_EXE: return (EXTERNAL_LOAD_ADDRESS == 0x90000000 && !user_update) ? "Launch Game" : "Exit Game";
     case LAST_COUNT: return "";
   };
   return "";
@@ -798,6 +794,16 @@ void blit_switch_execution(void)
 
   // Reset button state, this prevents the user app immediately seeing the last button transition used to launch the game
   buttons = 0;
+
+  // returning from game running on top of the firmware
+  if(user_update) {
+    user_update = nullptr;
+    user_render = nullptr;
+    blit::render = ::render;
+    blit::update = ::update;
+    // TODO: need to reset everything
+    return;
+  }
 
 	// enable qspi memory mapping if needed
 	if(EXTERNAL_LOAD_ADDRESS >= 0x90000000)
