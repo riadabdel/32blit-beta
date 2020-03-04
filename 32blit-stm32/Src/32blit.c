@@ -60,8 +60,10 @@ const uint32_t long_press_exit_time = 1000;
 
 __attribute__((section(".persist"))) Persist persist;
 
+static bool (*do_tick)(uint32_t time) = blit::tick;
+
 // pointers to user code
-static void (*user_update)(uint32_t time) = nullptr;
+static bool (*user_tick)(uint32_t time) = nullptr;
 static void (*user_render)(uint32_t time) = nullptr;
 
 void DFUBoot(void)
@@ -149,7 +151,7 @@ void blit_tick() {
   blit_update_led();
   blit_update_vibration();
 
-  blit::tick(blit::now());
+  do_tick(blit::now());
 }
 
 bool blit_sd_detected() {
@@ -378,7 +380,7 @@ std::string menu_name (MenuItem item) {
     case VOLUME: return "Volume";
     case DFU: return "DFU Mode";
     case SHIPPING: return "Power Off";
-    case SWITCH_EXE: return (EXTERNAL_LOAD_ADDRESS == 0x90000000 && !user_update) ? "Launch Game" : "Exit Game";
+    case SWITCH_EXE: return (EXTERNAL_LOAD_ADDRESS == 0x90000000 && !user_tick) ? "Launch Game" : "Exit Game";
     case LAST_COUNT: return "";
   };
   return "";
@@ -560,10 +562,10 @@ void blit_menu_render(uint32_t time) {
 }
 
 void blit_menu() {
-  if(blit::update == blit_menu_update) {
-    if (user_update) {
+  if(blit::update == blit_menu_update && do_tick == blit::tick) {
+    if (user_tick) {
       // user code was running
-      blit::update = user_update;
+      do_tick = user_tick;
       blit::render = user_render;
     } else {
       blit::update = ::update;
@@ -574,6 +576,7 @@ void blit_menu() {
   {
     blit::update = blit_menu_update;
     blit::render = blit_menu_render;
+    do_tick = blit::tick;
   }
 }
 
@@ -783,6 +786,7 @@ typedef  void (*pFunction)(void);
 pFunction JumpToApplication;
 
 typedef void(*renderFunction)(uint32_t);
+typedef bool(*tickFunction)(uint32_t);
 
 void blit_switch_execution(void)
 {
@@ -796,11 +800,12 @@ void blit_switch_execution(void)
   buttons = 0;
 
   // returning from game running on top of the firmware
-  if(user_update) {
-    user_update = nullptr;
+  if(user_tick) {
+    user_tick = nullptr;
     user_render = nullptr;
     blit::render = ::render;
     blit::update = ::update;
+    do_tick = blit::tick;
     // TODO: need to reset everything
     return;
   }
@@ -816,7 +821,7 @@ void blit_switch_execution(void)
     init();
 
     blit::render = user_render = (renderFunction) (*(__IO uint32_t*) (EXTERNAL_LOAD_ADDRESS + 4));
-    blit::update = user_update = (renderFunction) (*(__IO uint32_t*) (EXTERNAL_LOAD_ADDRESS + 8));
+    do_tick = user_tick = (tickFunction) (*(__IO uint32_t*) (EXTERNAL_LOAD_ADDRESS + 8));
     return;
   }
 
