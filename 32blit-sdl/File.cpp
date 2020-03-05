@@ -1,4 +1,11 @@
+#if __has_include(<filesystem>)
 #include <filesystem>
+namespace fs = std::filesystem;
+#else
+#include <experimental/filesystem>
+namespace fs = std::experimental::filesystem;
+#endif
+
 #include <string>
 
 #include "SDL.h"
@@ -6,10 +13,7 @@
 #include "File.hpp"
 #include "UserCode.hpp"
 
-namespace fs = std::filesystem;
-
 static std::string base_path, save_path;
-
 
 static std::string map_path(const std::string &path) {
   // check if the path is under the save path
@@ -99,7 +103,7 @@ void list_files(const std::string &path, std::function<void(blit::FileInfo &)> c
     info.flags = 0;
     info.size = entry.file_size();
 
-    if(entry.is_directory())
+    if(entry.status().type() == fs::file_type::directory)
       info.flags |= blit::FileFlags::directory;
 
     callback(info);
