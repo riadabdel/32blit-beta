@@ -1,21 +1,15 @@
-#include <cerrno>
+#include <filesystem>
 #include <string>
-#include <map>
-
-#ifdef WIN32
-#include <direct.h>
-#include <shlobj.h>
-#else
-#include <dirent.h>
-#include <sys/stat.h>
-#endif
 
 #include "SDL.h"
 
 #include "File.hpp"
 #include "UserCode.hpp"
 
+namespace fs = std::filesystem;
+
 static std::string base_path, save_path;
+
 
 static std::string map_path(const std::string &path) {
   // check if the path is under the save path
@@ -95,103 +89,47 @@ uint32_t get_file_length(void *fh)
 }
 
 void list_files(const std::string &path, std::function<void(blit::FileInfo &)> callback) {
-#ifdef WIN32
-  HANDLE file;
-  WIN32_FIND_DATAA findData;
-  file = FindFirstFileA((map_path(path) + "\\*").c_str(), &findData);
 
-  if(file == INVALID_HANDLE_VALUE)
-    return;
-
-  do
-  {
+  std::error_code err;
+  for(auto &entry : fs::directory_iterator(map_path(path), fs::directory_options::follow_directory_symlink, err)) {
     blit::FileInfo info;
-    info.name = findData.cFileName;
 
-    if(info.name == "." || info.name == "..")
-      continue;
+    info.name = entry.path().filename().generic_string();
 
     info.flags = 0;
-    info.size = findData.nFileSizeLow;
+    info.size = entry.file_size();
 
-    if(findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+    if(entry.is_directory())
       info.flags |= blit::FileFlags::directory;
 
     callback(info);
   }
-  while(FindNextFileA(file, &findData) != 0);
-
-  FindClose(file);
-
-#else
-  auto mapped_path = map_path(path);
-  auto dir = opendir(mapped_path.c_str());
-
-  if(!dir)
-    return;
-
-  struct dirent *ent;
-
-  while((ent = readdir(dir))) {
-    blit::FileInfo info;
-
-    info.name = ent->d_name;
-
-    if(info.name == "." || info.name == "..")
-      continue;
-
-    struct stat stat_buf;
-
-    if(stat((mapped_path + "/" + info.name).c_str(), &stat_buf) < 0)
-      continue;
-
-    info.flags = 0;
-    info.size = stat_buf.st_size;
-
-    if(S_ISDIR(stat_buf.st_mode))
-      info.flags |= blit::FileFlags::directory;
-
-    callback(info);
-  }
-
-  closedir(dir);
-#endif
 }
 
 bool file_exists(const std::string &path) {
-#ifdef WIN32
-	DWORD attribs = GetFileAttributesA(map_path(path).c_str());
-	return (attribs != INVALID_FILE_ATTRIBUTES && !(attribs & FILE_ATTRIBUTE_DIRECTORY));
-#else
-  struct stat stat_buf;
-  return (stat(map_path(path).c_str(), &stat_buf) == 0 && S_ISREG(stat_buf.st_mode));
-#endif
+  std::error_code err;
+  return fs::status(map_path(path), err).type() == fs::file_type::regular;
 }
 
 bool directory_exists(const std::string &path) {
-#ifdef WIN32
-	DWORD attribs = GetFileAttributesA(map_path(path).c_str());
-	return (attribs != INVALID_FILE_ATTRIBUTES && (attribs & FILE_ATTRIBUTE_DIRECTORY));
-#else
-  struct stat stat_buf;
-  return (stat(map_path(path).c_str(), &stat_buf) == 0 && S_ISDIR(stat_buf.st_mode));
-#endif
+  std::error_code err;
+  return fs::status(map_path(path), err).type() == fs::file_type::directory;
 }
 
 bool create_directory(const std::string &path) {
-#ifdef WIN32
-  return _mkdir(map_path(path).c_str()) == 0 || errno == EEXIST;
-#else
-  return mkdir(map_path(path).c_str(), 0755) == 0 || errno == EEXIST;
-#endif
+  std::error_code err;
+  return directory_exists(path) || fs::create_directory(map_path(path), err);
 }
 
 bool rename_file(const std::string &old_name, const std::string &new_name) {
-  return rename(map_path(old_name).c_str(), map_path(new_name).c_str()) == 0;
+  std::error_code err;
+  fs::rename(map_path(old_name), map_path(new_name), err);
+  return !err;
 }
 
 bool remove_file(const std::string &path) {
-  return remove(map_path(path).c_str()) == 0;
+  std::error_code err;
+  return fs::remove(map_path(path), err);
 }
 
 const char *get_save_path() {
