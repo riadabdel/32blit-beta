@@ -3,8 +3,8 @@
 #include <map>
 
 #ifdef WIN32
-#include <direct.h>
-#include <shlobj.h>
+#include <filesystem>
+namespace fs = std::filesystem;
 #else
 #include <dirent.h>
 #include <sys/stat.h>
@@ -81,33 +81,20 @@ std::vector<blit::FileInfo> list_files(const std::string &path) {
   std::vector<blit::FileInfo> ret;
 
 #ifdef WIN32
-  HANDLE file;
-  WIN32_FIND_DATAA findData;
-  file = FindFirstFileA((basePath + path + "\\*").c_str(), &findData);
-
-  if(file == INVALID_HANDLE_VALUE)
-    return ret;
-
-  do
-  {
+  std::error_code err;
+  for(auto &entry: fs::directory_iterator(basePath + path, fs::directory_options::follow_directory_symlink, err)) {
     blit::FileInfo info;
-    info.name = findData.cFileName;
 
-    if(info.name == "." || info.name == "..")
-      continue;
+    info.name = entry.path().filename();
 
     info.flags = 0;
-    info.size = findData.nFileSizeLow;
+    info.size = entry.file_size();
 
-    if(findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+    if(entry.is_directory())
       info.flags |= blit::FileFlags::directory;
 
     ret.push_back(info);
   }
-  while(FindNextFileA(file, &findData) != 0);
-
-  FindClose(file);
-
 #else
   auto dir = opendir((basePath + path).c_str());
 
@@ -146,8 +133,8 @@ std::vector<blit::FileInfo> list_files(const std::string &path) {
 
 bool file_exists(const std::string &path) {
 #ifdef WIN32
-	DWORD attribs = GetFileAttributesA((basePath + path).c_str());
-	return (attribs != INVALID_FILE_ATTRIBUTES && !(attribs & FILE_ATTRIBUTE_DIRECTORY));
+  std::error_code err;
+  return fs::status(basePath + path, err).type() == fs::file_type::regular;
 #else
   struct stat stat_buf;
   return (stat((basePath + path).c_str(), &stat_buf) == 0 && S_ISREG(stat_buf.st_mode));
@@ -156,8 +143,8 @@ bool file_exists(const std::string &path) {
 
 bool directory_exists(const std::string &path) {
 #ifdef WIN32
-	DWORD attribs = GetFileAttributesA((basePath + path).c_str());
-	return (attribs != INVALID_FILE_ATTRIBUTES && (attribs & FILE_ATTRIBUTE_DIRECTORY));
+  std::error_code err;
+  return fs::status(basePath + path, err).type() == fs::file_type::directory;
 #else
   struct stat stat_buf;
   return (stat((basePath + path).c_str(), &stat_buf) == 0 && S_ISDIR(stat_buf.st_mode));
@@ -166,7 +153,8 @@ bool directory_exists(const std::string &path) {
 
 bool create_directory(const std::string &path) {
 #ifdef WIN32
-  return _mkdir((basePath + path).c_str()) == 0 || errno == EEXIST;
+  std::error_code err;
+  return directory_exists(path) || fs::create_directory(path, err);
 #else
   return mkdir((basePath + path).c_str(), 0755) == 0 || errno == EEXIST;
 #endif
