@@ -85,7 +85,7 @@ std::vector<blit::FileInfo> list_files(const std::string &path) {
   for(auto &entry: fs::directory_iterator(basePath + path, fs::directory_options::follow_directory_symlink, err)) {
     blit::FileInfo info;
 
-    info.name = entry.path().filename();
+    info.name = entry.path().filename().generic_string();
 
     info.flags = 0;
     info.size = entry.file_size();
