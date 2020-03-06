@@ -109,7 +109,7 @@ bool FlashLoader::Flash(const char *pszFilename)
 		FSIZE_t uSize = f_size(&file);
 		FSIZE_t uTotalBytesRead = 0;
 
-		size_t flashOffset = 0;
+		size_t flashOffset = 256;
 		size_t uOffset = 0;
 
 		uint32_t got_start = 0, got_end = 0;

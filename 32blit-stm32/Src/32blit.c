@@ -814,7 +814,7 @@ void blit_switch_execution(void)
 	if(EXTERNAL_LOAD_ADDRESS >= 0x90000000)
 		qspi_enable_memorymapped_mode();
 
-  uint32_t offset = 0;
+  uint32_t offset = 256;
 
   auto app_ptr =  (__IO uint32_t*) (EXTERNAL_LOAD_ADDRESS + offset);
 
