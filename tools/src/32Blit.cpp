@@ -406,7 +406,7 @@ bool Get32BlitInfo(uint32_t &uAck)
 {
   bool bResult = false;
 
-  char rstCommand[] = "32BLINFO";
+  char rstCommand[] = "INFO";
   ssize_t res = WriteCom(rstCommand, 8);
   if (res != 8)
   {
@@ -457,7 +457,7 @@ bool ResetIfNeeded(const char *pszComPort)
   {
     printf("Resetting 32Blit and waiting for USB connection, please wait...\n");
     // need to reset 32blit
-    char rstCommand[] = "32BL_RST";
+    char rstCommand[] = "RESET";
     WriteCom(rstCommand, (uint32_t)strlen(rstCommand));
     CloseCom();
 
@@ -553,7 +553,7 @@ int main(int argc, char *argv[])
   if (!pszBinPath)
   {
     char header[1024];
-    snprintf(header, 1024, "32BL%s%c", pszProcess, 0);
+    snprintf(header, 1024, "RESET%c", 0);
     size_t uLen = strlen(header) + 1;
     WriteCom(header, (uint32_t)uLen);
     CloseCom();
@@ -601,9 +601,9 @@ int main(int argc, char *argv[])
 
   printf("Sending binary file ");
   char header[1024];
-  snprintf(header, 1024, "32BL%s%s%c%ld%c", pszProcess, pszBinFile, '*', nSize, '*');
+  snprintf(header, 1024, "%s%c%s%c%ld%c", pszProcess, '*', pszBinFile, '*', nSize, '*');
   size_t uLen = strlen(header);
-  snprintf(header, 1024, "32BL%s%s%c%ld%c", pszProcess, pszBinFile, 0, nSize, 0);
+  snprintf(header, 1024, "%s%c%s%c%ld%c", pszProcess, 0, pszBinFile, 0, nSize, 0);
   if (WriteCom(header, (uint32_t)uLen) != (ssize_t)uLen)
   {
     printf("Error: Failed to write header to 32Blit.\n");

@@ -71,7 +71,7 @@ CommandState usb_serial_dfu(CommandState state, char *data, uint32_t length) {
 }
 
 CommandState usb_serial_application_location(CommandState state, char *data, uint32_t length) {
-  while(USBD_BUSY == transmit("32BL_EXT")) {};
+  while(USBD_BUSY == transmit("32BL_INT")) {};
 	HAL_Delay(250);
 	return CommandState::END;
 }
@@ -261,7 +261,7 @@ bool flash_from_sd_to_qspi_flash(const std::string &filename)
 CommandState usb_serial_save_to_sd_card(CommandState state, char *data, uint32_t length) {
   static char   filename[64] = {'\0'};
   static FIL    file;
-  
+
   if(state == CommandState::TIMEOUT) {    
     // if the stream times out then clean up ready for another go
     std::string message = std::string("Writing file '") + filename + std::string("' to SD card timed out.");
