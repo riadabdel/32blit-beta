@@ -70,7 +70,9 @@ int main(void)
   //MX_DAC1_Init();
   MX_HRTIM_Init();
   MX_I2C4_Init();
+#if (INITIALISE_QSPI==1)
   MX_QUADSPI_Init();
+#endif
 
   MX_ADC1_Init();
   MX_ADC3_Init();
@@ -86,9 +88,11 @@ int main(void)
 
   blit_init();
 
+#if (INITIALISE_QSPI==1)
   qspi_init();
   if((persist.reset_target == prtGame) && HAL_GPIO_ReadPin(BUTTON_MENU_GPIO_Port,  BUTTON_MENU_Pin))
     blit_switch_execution();
+#endif
 
   while (1)
   {
