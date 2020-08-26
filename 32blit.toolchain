@@ -8,6 +8,7 @@ find_program(CMAKE_SIZE NAMES arm-none-eabi-size)
 find_program(CMAKE_READELF NAMES arm-none-eabi-readelf) # handled by CMake in 3.16+
 
 set(MCU_LINKER_SCRIPT STM32H750VBTx.ld)
+set(MCU_LINKER_SCRIPT_USER STM32H750VBTx_USER.ld)
 set(MCU_LINKER_FLAGS_INT -Wl,--defsym=FLASH_TARGET_INT=1)
 set(MCU_ARCH cortex-m7)
 set(MCU_FLOAT_ABI hard)
