@@ -49,3 +49,7 @@ endif()
 
 configure_file(version_defs.hpp.in version_defs.hpp)
 target_include_directories(BlitEngine PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+
+if(${CMAKE_SYSTEM_NAME} STREQUAL Generic)
+	set_target_properties(BlitEngine PROPERTIES COMPILE_FLAGS "-fPIC -mno-pic-data-is-text-relative -mno-single-pic-base")
+endif()
