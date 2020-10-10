@@ -12,7 +12,7 @@
 
 #ifndef __ANIMATEDGIF__
 #define __ANIMATEDGIF__
-#if defined( __MACH__ ) || defined( __LINUX__ ) || defined( __MCUXPRESSO ) || defined( TARGET_32BLIT_HW )
+#if defined( __MACH__ ) || defined( __linux__ ) || defined( __MCUXPRESSO ) || defined( TARGET_32BLIT_HW ) || defined(__EMSCRIPTEN__) || defined(_WIN32)
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>

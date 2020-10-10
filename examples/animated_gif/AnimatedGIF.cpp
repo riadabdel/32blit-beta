@@ -116,7 +116,7 @@ void AnimatedGIF::begin(int iEndian)
 int AnimatedGIF::playFrame(bool bSync, int *delayMilliseconds)
 {
 int rc;
-#if !defined( __MACH__ ) && !defined( __LINUX__ ) && !defined( TARGET_32BLIT_HW )
+#if !defined( __MACH__ ) && !defined( __linux__ ) && !defined( TARGET_32BLIT_HW ) && !defined(__EMSCRIPTEN__) && !defined(_WIN32)
 long lTime = millis();
 #endif
 
@@ -137,7 +137,7 @@ long lTime = millis();
     // Return 1 for more frames or 0 if this was the last frame
     if (bSync)
     {
-#if !defined( __MACH__ ) && !defined( __LINUX__ ) && !defined( TARGET_32BLIT_HW )
+#if !defined( __MACH__ ) && !defined( __linux__ ) && !defined( TARGET_32BLIT_HW ) && !defined(__EMSCRIPTEN__) && !defined(_WIN32)
         lTime = millis() - lTime;
         if (lTime < _gif.iFrameDelay) // need to pause a bit
            delay(_gif.iFrameDelay - lTime);
