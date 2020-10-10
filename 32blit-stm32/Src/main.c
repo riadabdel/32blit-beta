@@ -30,6 +30,7 @@
 #include "rng.h"
 #include "spi.h"
 #include "tim.h"
+#include "usart.h"
 #include "usb_device.h"
 
 #include "gpio.hpp"
@@ -148,6 +149,7 @@ int main(void)
   //MX_TIM16_Init();
   MX_FATFS_Init();  
   MX_RNG_Init();
+  MX_UART4_Init();
   MX_USB_DEVICE_Init();
   MX_JPEG_Init();
   /* USER CODE BEGIN 2 */
@@ -258,10 +260,10 @@ void SystemClock_Config(void)
     Error_Handler();
   }
   PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_LTDC|RCC_PERIPHCLK_HRTIM1
-                              |RCC_PERIPHCLK_RNG|RCC_PERIPHCLK_SPI4
-                              |RCC_PERIPHCLK_SPI1|RCC_PERIPHCLK_ADC
-                              |RCC_PERIPHCLK_I2C4|RCC_PERIPHCLK_USB
-                              |RCC_PERIPHCLK_QSPI;
+                              |RCC_PERIPHCLK_UART4|RCC_PERIPHCLK_RNG
+                              |RCC_PERIPHCLK_SPI4|RCC_PERIPHCLK_SPI1
+                              |RCC_PERIPHCLK_ADC|RCC_PERIPHCLK_I2C4
+                              |RCC_PERIPHCLK_USB|RCC_PERIPHCLK_QSPI;
   PeriphClkInitStruct.PLL2.PLL2M = 4;
   PeriphClkInitStruct.PLL2.PLL2N = 9;
   PeriphClkInitStruct.PLL2.PLL2P = 1;
@@ -281,6 +283,7 @@ void SystemClock_Config(void)
   PeriphClkInitStruct.QspiClockSelection = RCC_QSPICLKSOURCE_D1HCLK;
   PeriphClkInitStruct.Spi123ClockSelection = RCC_SPI123CLKSOURCE_PLL;
   PeriphClkInitStruct.Spi45ClockSelection = RCC_SPI45CLKSOURCE_HSI;
+  PeriphClkInitStruct.Usart234578ClockSelection = RCC_USART234578CLKSOURCE_D2PCLK1;
   PeriphClkInitStruct.RngClockSelection = RCC_RNGCLKSOURCE_HSI48;
   PeriphClkInitStruct.UsbClockSelection = RCC_USBCLKSOURCE_HSI48;
   PeriphClkInitStruct.I2c4ClockSelection = RCC_I2C4CLKSOURCE_D3PCLK1;
