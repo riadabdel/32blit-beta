@@ -53,6 +53,7 @@ jobs:
         tar -zcf ${RELEASE_FILE}.tar.gz bin/
 
     - name: Upload
+      if: github.event_name == 'release'
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{github.token}}
@@ -60,3 +61,4 @@ jobs:
         asset_path: ${{runner.workspace}}/build/${RELEASE_FILE}.tar.gz
         upload_url: ${{github.event.release.upload_url}}
         asset_name: ${RELEASE_FILE}.tar.gz
+        asset_content_type: application/octet-stream #??
