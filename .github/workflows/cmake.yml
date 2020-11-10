@@ -13,7 +13,7 @@ jobs:
   build:
     runs-on: ubuntu-18.04
     env:
-      RELEASE_FILE: ${{github.event.repository.name}}-${{github.run_id}}-LIN64
+      RELEASE_FILE: ${{github.event.repository.name}}-${{github.event.release.tag_name}}-LIN64
 
     steps:
     - uses: actions/checkout@v2
@@ -31,11 +31,11 @@ jobs:
       working-directory: ${{runner.workspace}}/build
       run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX=`pwd`
 
-    - uses: ammaraskar/gcc-problem-matcher@master
-    - name: Build
-      working-directory: ${{runner.workspace}}/build
-      shell: bash
-      run: cmake --build . --config $BUILD_TYPE
+    #- uses: ammaraskar/gcc-problem-matcher@master
+    #- name: Build
+    #  working-directory: ${{runner.workspace}}/build
+    #  shell: bash
+    #  run: cmake --build . --config $BUILD_TYPE
 
     #- name: Test
     #  working-directory: ${{runner.workspace}}/build
@@ -48,8 +48,9 @@ jobs:
       if: github.event_name == 'release'
       shell: bash
       working-directory: ${{runner.workspace}}/build
+      #cmake --build . --target install
       run: |
-        cmake --build . --target install
+        mkdir -p bin/
         tar -zcf ${RELEASE_FILE}.tar.gz bin/
 
     - name: Upload
