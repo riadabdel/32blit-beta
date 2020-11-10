@@ -56,7 +56,7 @@ jobs:
       if: github.event_name == 'release'
       uses: actions/upload-release-asset@v1
       env:
-        GITHUB_TOKEN: ${{github.token}}
+        GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
       with:
         asset_path: ${{runner.workspace}}/build/${{env.RELEASE_FILE}}.tar.gz
         upload_url: ${{github.event.release.upload_url}}
