@@ -58,7 +58,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{github.token}}
       with:
-        asset_path: ${{runner.workspace}}/build/${RELEASE_FILE}.tar.gz
+        asset_path: ${{runner.workspace}}/build/${{env.RELEASE_FILE}}.tar.gz
         upload_url: ${{github.event.release.upload_url}}
-        asset_name: ${RELEASE_FILE}.tar.gz
+        asset_name: ${{env.RELEASE_FILE}}.tar.gz
         asset_content_type: application/octet-stream #??
