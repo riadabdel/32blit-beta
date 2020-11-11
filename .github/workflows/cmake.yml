@@ -17,7 +17,7 @@ jobs:
         include:
           - os: ubuntu-18.04
             release-suffix: LIN64
-            cmake-args: "-DCMAKE_CXX_CLANG_TIDY=clang-tidy;-header-filter=32blit;-checks=performance-*,portability-*,modernize-*,-modernize-use-trailing-return-type,-modernize-avoid-c-arrays,-modernize-use-nodiscard"
+            cmake-args: '"-DCMAKE_CXX_CLANG_TIDY=clang-tidy;-header-filter=32blit;-checks=performance-*,portability-*,modernize-*,-modernize-use-trailing-return-type,-modernize-avoid-c-arrays,-modernize-use-nodiscard"'
           - os: windows-latest
             release-suffix: WIN64
             cmake-args: -DSDL2_DIR=$PWD/../32blit-beta/vs/sdl
