@@ -90,7 +90,7 @@ jobs:
       run: |
         cmake --build . --target install
         tar -zcf ${RELEASE_FILE}.tar.gz bin/
-        zip -9 ${RELEASE_FILE}.zip bin/*
+        7z a ${RELEASE_FILE}.zip bin/*
 
     - name: Upload tar
       if: github.event_name == 'release' && matrix.release-suffix != ''
