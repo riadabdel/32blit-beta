@@ -150,6 +150,10 @@ target_compile_definitions(BlitHalSTM32
 target_compile_options(BlitHalSTM32 PUBLIC "$<$<CONFIG:RELEASE>:-Os>")
 set_target_properties(BlitHalSTM32 PROPERTIES INTERPROCEDURAL_OPTIMIZATION TRUE)
 
+install(FILES 
+	32BlitConfig.cmake executable.cmake ${MCU_LINKER_SCRIPT} ${USER_STARTUP}
+	DESTINATION lib/cmake/32blit)
+
 function(blit_executable_int_flash NAME SOURCES)
 	add_executable(${NAME} $<TARGET_OBJECTS:BlitHalSTM32> ${SOURCES} ${ARGN})
 
