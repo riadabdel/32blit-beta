@@ -49,3 +49,5 @@ endif()
 
 configure_file(version_defs.hpp.in version_defs.hpp)
 target_include_directories(BlitEngine PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+
+target_compile_features(BlitEngine PUBLIC cxx_std_17)
