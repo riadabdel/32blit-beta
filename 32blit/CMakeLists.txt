@@ -34,8 +34,9 @@ set(SOURCES
 
 add_library(BlitEngine STATIC ${SOURCES})
 
-target_include_directories(BlitEngine
-	PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}
+target_include_directories(BlitEngine PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+  $<INSTALL_INTERFACE:include>
 )
 
 # version variables
@@ -51,3 +52,12 @@ configure_file(version_defs.hpp.in version_defs.hpp)
 target_include_directories(BlitEngine PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 
 target_compile_features(BlitEngine PUBLIC cxx_std_17)
+
+install(TARGETS BlitEngine
+  LIBRARY
+    DESTINATION lib
+)
+
+# headers
+install(DIRECTORY audio engine graphics math types DESTINATION include FILES_MATCHING PATTERN "*.hpp")
+install(FILES 32blit.hpp ${CMAKE_CURRENT_BINARY_DIR}/version_defs.hpp DESTINATION include)
