@@ -122,4 +122,6 @@ install(TARGETS BlitHalSDL
     DESTINATION lib
 )
 
+install(FILES 32BlitConfig.cmake functions.cmake DESTINATION lib/cmake/32blit)
+
 include(functions.cmake)

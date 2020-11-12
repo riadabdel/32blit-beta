@@ -65,6 +65,5 @@ install(FILES 32blit.hpp ${CMAKE_CURRENT_BINARY_DIR}/version_defs.hpp DESTINATIO
 
 install(EXPORT ExportTargets
   FILE 32BlitTargets.cmake
-  NAMESPACE blit::
   DESTINATION lib/cmake/32blit
 )
