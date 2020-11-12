@@ -116,4 +116,10 @@ if(DEFINED VIDEO_CAPTURE AND VIDEO_CAPTURE)
 	)
 endif()
 
+install(TARGETS BlitHalSDL
+  EXPORT ExportTargets
+  LIBRARY
+    DESTINATION lib
+)
+
 include(functions.cmake)
