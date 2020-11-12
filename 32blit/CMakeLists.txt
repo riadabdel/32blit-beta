@@ -54,6 +54,7 @@ target_include_directories(BlitEngine PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 target_compile_features(BlitEngine PUBLIC cxx_std_17)
 
 install(TARGETS BlitEngine
+  EXPORT ExportTargets
   LIBRARY
     DESTINATION lib
 )
@@ -61,3 +62,9 @@ install(TARGETS BlitEngine
 # headers
 install(DIRECTORY audio engine graphics math types DESTINATION include FILES_MATCHING PATTERN "*.hpp")
 install(FILES 32blit.hpp ${CMAKE_CURRENT_BINARY_DIR}/version_defs.hpp DESTINATION include)
+
+install(EXPORT ExportTargets
+  FILE 32BlitTargets.cmake
+  NAMESPACE blit::
+  DESTINATION lib/cmake/32blit
+)
