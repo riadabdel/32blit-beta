@@ -1,9 +1,6 @@
 if (NOT DEFINED BLIT_ONCE)
 	set(BLIT_ONCE TRUE)
 
-	set(CMAKE_CXX_STANDARD 17)
-	set(CMAKE_CXX_EXTENSIONS OFF)
-
 	find_package(PythonInterp 3.6 REQUIRED)
 
 	# make sure that the tools are installed
@@ -20,8 +17,6 @@ if (NOT DEFINED BLIT_ONCE)
 	if(WIN32)
 		add_definitions("-DWIN32")
 	endif()
-
-	add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/32blit 32blit)
 
 	function (blit_assets_yaml TARGET FILE)
 		# cause cmake to reconfigure whenever the asset list changes
@@ -45,9 +40,5 @@ if (NOT DEFINED BLIT_ONCE)
 
 	if (${CMAKE_SYSTEM_NAME} STREQUAL Generic)
 		set(FLASH_PORT "AUTO" CACHE STRING "Port to use for flash")
-
-		include(${CMAKE_CURRENT_LIST_DIR}/32blit-stm32/executable.cmake)
-	else()
-		add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/32blit-sdl 32blit-sdl)
 	endif()
 endif ()
