@@ -56,6 +56,6 @@ if(CMAKE_C_COMPILER_ID MATCHES "MSVC")
   )
 endif()
 
-if(${CMAKE_SYSTEM_NAME} STREQUAL Generic)
+if(32BLIT_HW)
 	set_target_properties(BlitEngine PROPERTIES COMPILE_FLAGS "-fPIC -mno-pic-data-is-text-relative -mno-single-pic-base")
 endif()
