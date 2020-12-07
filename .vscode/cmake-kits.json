@@ -2,5 +2,9 @@
     {
       "name": "32Blit",
       "toolchainFile": "${workspaceFolder}/32blit.toolchain"
+    },
+    {
+      "name": "32Blit - Teensy 4.1",
+      "toolchainFile": "${workspaceFolder}/32blit-t41.toolchain"
     }
 ]
