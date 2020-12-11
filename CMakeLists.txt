@@ -17,3 +17,17 @@ endif()
 if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL Generic AND NOT EMSCRIPTEN)
     add_subdirectory(tools/src)
 endif()
+
+# setup release packages
+if(DEFINED ENV{TRAVIS_TAG})
+    # the usual way to set the version would be project(32blit VERSION 1.2.3)...
+    set(CPACK_PACKAGE_VERSION $ENV{TRAVIS_TAG} PARENT_SCOPE)
+endif()
+
+if(${CMAKE_SYSTEM_NAME} STREQUAL Generic)
+    set(CPACK_SYSTEM_NAME "STM32")
+endif()
+
+set(CPACK_INCLUDE_TOPLEVEL_DIRECTORY OFF)
+set(CPACK_GENERATOR "ZIP" "TGZ")
+include(CPack)
