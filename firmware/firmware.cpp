@@ -442,7 +442,7 @@ void render(uint32_t time) {
     screen.pen = Pen(255, 255, 255);
     screen.text(
       "No launcher found!\n\nFlash one with 32blit flash\n or place launcher.blit on your SD card.",
-      minimal_font, Point(screen.bounds.w / 2, screen.bounds.h / 2), true, TextAlign::center_center
+      minimal_font, Point(screen.bounds.w / 2, screen.bounds.h / 2), TextFlags::center_center
     );
   }
 

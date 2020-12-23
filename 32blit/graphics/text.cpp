@@ -16,11 +16,10 @@ namespace blit {
    * \param message Text to draw
    * \param font Font to use
    * \param p Point to align text to
-   * \param variable Draw text using variable character widths
-   * \param align Alignment
+   * \param flags Flags for alignment/variable width
    */
-  void Surface::text(std::string_view message, const Font &font, const Point &p, bool variable, TextAlign align) {
-    text(message, font, Rect(p.x, p.y, 0, 0), variable, align);
+  void Surface::text(std::string_view message, const Font &font, const Point &p, int flags) {
+    text(message, font, Rect(p.x, p.y, 0, 0), flags);
   }
 
   /**
@@ -30,29 +29,31 @@ namespace blit {
    * \param font Font to use
    * \param r Rect to align text to
    * \param variable Draw text using variable character widths
-   * \param align Alignment
+   * \param align ::TextFlags for alignment/variable width
    */
-  void Surface::text(std::string_view message, const Font &font, const Rect &r, bool variable, TextAlign align) {
+  void Surface::text(std::string_view message, const Font &font, const Rect &r, int flags) {
     Point c(r.x, r.y); // caret position
 
     if(!clip.intersects(r))
       return;
 
-    // check vertical alignment
-    if ((align & 0b11) != TextAlign::top) {
-      Size bounds = measure_text(message, font, variable);
+    bool variable = !(flags & TextFlags::fixed_width);
 
-      if ((align & 0b11) == TextAlign::bottom)
+    // check vertical alignment
+    if ((flags & 0b11) != TextFlags::top) {
+      Size bounds = measure_text(message, font, flags);
+
+      if ((flags & 0b11) == TextFlags::bottom)
         c.y += r.h - bounds.h;
       else // center
         c.y += (r.h - bounds.h) / 2;
     }
 
     // check horizontal alignment
-    if ((align & 0b1100) != TextAlign::left) {
-      Size bounds = measure_text(message.substr(0, message.find_first_of('\n')), font, variable);
+    if ((flags & 0b1100) != TextFlags::left) {
+      Size bounds = measure_text(message.substr(0, message.find_first_of('\n')), font, flags);
 
-      if ((align & 0b1100) == TextAlign::right)
+      if ((flags & 0b1100) == TextFlags::right)
         c.x += r.w - bounds.w;
       else // center
         c.x += (r.w - bounds.w) / 2;
@@ -106,14 +107,14 @@ namespace blit {
         c.y += font.char_h + font.spacing_y;
 
         // check horizontal alignment
-        if ((align & 0b1100) != TextAlign::left) {
+        if ((flags & 0b1100) != TextFlags::left) {
           auto end = message.find_first_of('\n', char_off + 1);
           if(end != std::string::npos)
             end -= char_off + 1;
 
-          Size bounds = measure_text(message.substr(char_off + 1, end), font, variable);
+          Size bounds = measure_text(message.substr(char_off + 1, end), font, flags);
 
-          if ((align & 0b1100) == TextAlign::right)
+          if ((flags & 0b1100) == TextFlags::right)
             c.x += r.w - bounds.w;
           else // center
             c.x += (r.w - bounds.w) / 2;
@@ -139,11 +140,11 @@ namespace blit {
    *
    * \param message Text to measure
    * \param font Font to use for measurement
-   * \param variable Use variable character widths
+   * \param flags ::TextFlags
    * 
    * \returns Measured Size of text
    */
-  Size Surface::measure_text(std::string_view message, const Font &font, bool variable) {
+  Size Surface::measure_text(std::string_view message, const Font &font, int flags) {
     const int line_height = font.char_h + font.spacing_y;
 
     Size bounds(0, 0);
@@ -161,7 +162,7 @@ namespace blit {
 
         line_len = 0;
         char_off++;
-      } else if (variable) {
+      } else if (!(flags & TextFlags::fixed_width)) {
         line_len += get_char_width(font, message[char_off], true);
         char_off++;
       } else {
@@ -191,12 +192,12 @@ namespace blit {
  * \param message Text to wrap
  * \param width Maximum width of a line of text
  * \param font Font to use for measurement
- * \param variable Use variable character widths
+ * \param flags ::TextFlags
  * \param words Attempt to break lines between words if `true`
  * 
  * \returns Wrapped text
  */
-std::string Surface::wrap_text(std::string_view message, int32_t width, const Font &font, bool variable, bool words) {
+std::string Surface::wrap_text(std::string_view message, int32_t width, const Font &font, int flags, bool words) {
   std::string ret;
 
   int current_x = 0;
@@ -215,7 +216,7 @@ std::string Surface::wrap_text(std::string_view message, int32_t width, const Fo
       continue;
     }
 
-    int char_width = get_char_width(font, message[i], variable);
+    int char_width = get_char_width(font, message[i], !(flags & TextFlags::fixed_width));
     current_x += char_width;
 
     if (current_x > width) {
@@ -231,7 +232,7 @@ std::string Surface::wrap_text(std::string_view message, int32_t width, const Fo
         ret += "\n";
         copied_off = last_space + 1; // don't copy the space
         last_space = std::string::npos;
-        current_x = measure_text(message.substr(copied_off, i - copied_off + 1), font, variable).w;
+        current_x = measure_text(message.substr(copied_off, i - copied_off + 1), font, flags).w;
       }
     }
   }

@@ -152,7 +152,7 @@ public:
       item_rect.x += item_padding_x;
       item_rect.y += item_adjust_y;
       item_rect.h += font.spacing_y; // adjust for alignment
-      screen.text(item.label, font, item_rect, true, TextAlign::center_left);
+      screen.text(item.label, font, item_rect, TextFlags::center_left);
     }
 
     //
@@ -184,7 +184,7 @@ public:
       screen.pen = header_foreground;
       header_rect.x += item_padding_x;
       header_rect.h += font.spacing_y; // adjust for alignment
-      screen.text(title, font, header_rect, true, TextAlign::center_left);
+      screen.text(title, font, header_rect, TextFlags::center_left);
     }
 
     //

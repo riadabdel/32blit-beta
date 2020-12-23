@@ -54,11 +54,11 @@ void ConnectivityMenu::render_item(const Item &item, int y, int index) const {
       label = g_usbManager.GetStateName() + 4; // trim the "MSC "
     else
       label = "Disabled";
-    screen.text(label, minimal_font, Point(screen_width - item_padding_x, y + 1), true, TextAlign::right);
+    screen.text(label, minimal_font, Point(screen_width - item_padding_x, y + 1), TextFlags::right);
     break;
   default:
     screen.pen = foreground_colour;
-    screen.text("Press A", minimal_font, Point(screen_width - item_padding_x, y + 1), true, TextAlign::right);
+    screen.text("Press A", minimal_font, Point(screen_width - item_padding_x, y + 1), TextFlags::right);
     break;
   }
 }

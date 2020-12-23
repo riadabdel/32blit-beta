@@ -104,7 +104,7 @@ void FirmwareMenu::render_item(const Item &item, int y, int index) const {
     if (persist.is_muted)
     {
       screen.pen = bar_highlight_color;
-      screen.text("Muted", minimal_font, Point(screen_width - item_padding_x, y + 1), true, TextAlign::right);
+      screen.text("Muted", minimal_font, Point(screen_width - item_padding_x, y + 1), TextFlags::right);
     }
     else
     {
@@ -113,7 +113,7 @@ void FirmwareMenu::render_item(const Item &item, int y, int index) const {
     break;
   default:
     screen.pen = foreground_colour;
-    screen.text("Press A", minimal_font, Point(screen_width - item_padding_x, y + 1), true, TextAlign::right);
+    screen.text("Press A", minimal_font, Point(screen_width - item_padding_x, y + 1), TextFlags::right);
     break;
   }
 }

@@ -50,7 +50,7 @@ void render(uint32_t time_ms) {
   screen.clear();
 
   screen.pen = Pen(255, 255, 255);
-  screen.text("Updating firmware...", minimal_font, Point(screen.bounds.w / 2, screen.bounds.h / 2), false, TextAlign::center_center);
+  screen.text("Updating firmware...", minimal_font, Point(screen.bounds.w / 2, screen.bounds.h / 2), TextFlags::center_center | TextFlags::fixed_width);
 
   rendered++;
 }

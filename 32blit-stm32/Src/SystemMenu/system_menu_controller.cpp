@@ -142,7 +142,7 @@ void SystemMenuController::render_footer_version(uint32_t time) {
   screen.pen = get_menu_colour(10);
 
   // render the version string into the footer
-  screen.text(get_version_string(), minimal_font, Point(screen_width - 5, screen_height - 11), true, TextAlign::top_right);
+  screen.text(get_version_string(), minimal_font, Point(screen_width - 5, screen_height - 11), TextFlags::top_right);
 }
 
 //

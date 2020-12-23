@@ -33,8 +33,8 @@ namespace blit {
   };
 #pragma pack(pop)
 
-  /// Text alignment
-  enum TextAlign {
+  /// Text flags
+  enum TextFlags {
     left          = 0b0000,
     center_h      = 0b0100,
     right         = 0b1000,
@@ -52,6 +52,9 @@ namespace blit {
     top_right     = top      | right,
     center_right  = center_v | right,
     bottom_right  = bottom   | right,
+
+    variable_width = 0b00000,
+    fixed_width    = 0b10000
   };
 
   enum class PixelFormat {
@@ -151,10 +154,10 @@ namespace blit {
     void triangle(Point p1, Point p2, Point p3);
     void polygon(std::vector<Point> p);
 
-    void text(std::string_view message, const Font &font, const Rect &r, bool variable = true, TextAlign align = TextAlign::top_left);
-    void text(std::string_view message, const Font &font, const Point &p, bool variable = true, TextAlign align = TextAlign::top_left);
-    Size measure_text(std::string_view message, const Font &font, bool variable = true);
-    std::string wrap_text(std::string_view message, int32_t width, const Font &font, bool variable = true, bool words = true);
+    void text(std::string_view message, const Font &font, const Rect &r, int flags = TextFlags::top_left);
+    void text(std::string_view message, const Font &font, const Point &p, int flags = TextFlags::top_left);
+    Size measure_text(std::string_view message, const Font &font, int flags = TextFlags::variable_width);
+    std::string wrap_text(std::string_view message, int32_t width, const Font &font, int flags = TextFlags::variable_width, bool words = true);
 
     /*void outline_circle(const point &c, int32_t r);
 

@@ -45,21 +45,21 @@ void BatteryMenu::render_item(const Item &item, int y, int index) const {
 
   switch (item.id) {
   case CHARGE:
-    screen.text(bat.charge_text, minimal_font, Point(screen_width - item_padding_x, y + 1), true, TextAlign::right);
+    screen.text(bat.charge_text, minimal_font, Point(screen_width - item_padding_x, y + 1), TextFlags::right);
     break;
   case VBUS:
-    screen.text(bat.vbus_text, minimal_font, Point(screen_width - item_padding_x, y + 1), true, TextAlign::right);
+    screen.text(bat.vbus_text, minimal_font, Point(screen_width - item_padding_x, y + 1), TextFlags::right);
     break;
   case VOLTAGE:
     {
       char buf[100];
       snprintf(buf, 100, "%i.%i", (int)bat.voltage, (int)((bat.voltage - (int)bat.voltage) * 10.0f));
-      screen.text(buf, minimal_font, Point(screen_width - item_padding_x, y + 1), true, TextAlign::right);
+      screen.text(buf, minimal_font, Point(screen_width - item_padding_x, y + 1), TextFlags::right);
     }
     break;
   default:
     screen.pen = foreground_colour;
-    screen.text("Press A", minimal_font, Point(screen_width - item_padding_x, y + 1), true, TextAlign::right);
+    screen.text("Press A", minimal_font, Point(screen_width - item_padding_x, y + 1), TextFlags::right);
     break;
   }
 }

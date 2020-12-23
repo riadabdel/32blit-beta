@@ -172,8 +172,8 @@ void render(uint32_t time) {
   }
 
   char buf[100];
-  snprintf(buf, 100, "Ver: %s Date: %s\n", blit::get_version_string(), blit::get_build_date());
-  blit::screen.text(buf, blit::minimal_font, blit::Point(blit::screen.bounds.w, blit::screen.bounds.h), true, blit::TextAlign::bottom_right);
+  snprintf(buf, 100, "Ver: %s Date: %s\n", get_version_string(), get_build_date());
+  blit::screen.text(buf, minimal_font, Point(screen.bounds.w, screen.bounds.h), TextFlags::bottom_right);
 }
 
 void update(uint32_t time) {

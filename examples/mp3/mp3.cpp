@@ -44,7 +44,7 @@ void render(uint32_t time) {
   screen.pen = Pen(255, 255, 255);
   Rect text_rect(5, 30, screen.bounds.w - 10, 10);
   screen.text(std::to_string(play_time / 1000), minimal_font, text_rect);
-  screen.text(std::to_string(stream.get_duration_ms() / 1000), minimal_font, text_rect, true, TextAlign::top_right);
+  screen.text(std::to_string(stream.get_duration_ms() / 1000), minimal_font, text_rect, TextFlags::top_right);
 
   // progress
   screen.pen = Pen(40, 40, 40);

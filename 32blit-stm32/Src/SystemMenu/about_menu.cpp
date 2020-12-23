@@ -47,16 +47,16 @@ void AboutMenu::render_item(const Item &item, int y, int index) const {
 
   switch (item.id) {
   case FIRMWARE_VERSION:
-    screen.text(get_version_string(), minimal_font, Point(screen_width - item_padding_x, y + 1), true, TextAlign::right);
+    screen.text(get_version_string(), minimal_font, Point(screen_width - item_padding_x, y + 1), TextFlags::right);
     break;
   case FIRMWARE_DATE:
-    screen.text(get_build_date(), minimal_font, Point(screen_width - item_padding_x, y + 1), true, TextAlign::right);
+    screen.text(get_build_date(), minimal_font, Point(screen_width - item_padding_x, y + 1), TextFlags::right);
     break;
   case BLIT_DEVICE_TYPE:
     if(is_beta_unit) {
-      screen.text("Beta unit", minimal_font, Point(screen_width - item_padding_x, y + 1), true, TextAlign::right);
+      screen.text("Beta unit", minimal_font, Point(screen_width - item_padding_x, y + 1), TextFlags::right);
     } else {
-      screen.text("Retail unit", minimal_font, Point(screen_width - item_padding_x, y + 1), true, TextAlign::right);
+      screen.text("Retail unit", minimal_font, Point(screen_width - item_padding_x, y + 1), TextFlags::right);
     }
     break;
   case SD_CARD:
@@ -76,15 +76,15 @@ void AboutMenu::render_item(const Item &item, int y, int index) const {
       } else
         snprintf(buf, 100, "Unknown %i", res);
 
-      screen.text(buf, minimal_font, Point(screen_width - item_padding_x, y + 1), true, TextAlign::right);
+      screen.text(buf, minimal_font, Point(screen_width - item_padding_x, y + 1), TextFlags::right);
     } else if(blit_sd_detected())
-      screen.text("Not mounted", minimal_font, Point(screen_width - item_padding_x, y + 1), true, TextAlign::right);
+      screen.text("Not mounted", minimal_font, Point(screen_width - item_padding_x, y + 1), TextFlags::right);
     else
-      screen.text("Not inserted", minimal_font, Point(screen_width - item_padding_x, y + 1), true, TextAlign::right);
+      screen.text("Not inserted", minimal_font, Point(screen_width - item_padding_x, y + 1), TextFlags::right);
     break;
   default:
     screen.pen = foreground_colour;
-    screen.text("Press A", minimal_font, Point(screen_width - item_padding_x, y + 1), true, TextAlign::right);
+    screen.text("Press A", minimal_font, Point(screen_width - item_padding_x, y + 1), TextFlags::right);
     break;
   }
 }

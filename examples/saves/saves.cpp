@@ -37,7 +37,7 @@ void render(uint32_t time_ms) {
   screen.pen = Pen(255, 255, 255);
   char buf[100];
   snprintf(buf, 100, "Hello %s\n\nHold A to win!\n\nCurrent score: %i", save_data.name, save_data.score);
-  screen.text(buf, minimal_font, Point(screen.bounds.w / 2, screen.bounds.h / 2), false, TextAlign::center_center);
+  screen.text(buf, minimal_font, Point(screen.bounds.w / 2, screen.bounds.h / 2), TextFlags::center_center | TextFlags::fixed_width);
 }
 
 void update(uint32_t time) {

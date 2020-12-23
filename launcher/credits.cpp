@@ -100,7 +100,7 @@ namespace credits {
     auto next_index = 0;
     auto y = start_y;
 
-    auto mode = CreditRenderMode::Credits; 
+    auto mode = CreditRenderMode::Credits;
     auto contrib_index = 0;
     auto special_index = 0;
 
@@ -125,7 +125,7 @@ namespace credits {
         // render
       if (y >= 0 && y < screen.bounds.h) { // clip to screen
         if (mode == CreditRenderMode::Contributors && contributors[contrib_index]) {
-          screen.text(contributors[contrib_index], minimal_font, Point(screen_width / 2, y), true, TextAlign::center_h);
+          screen.text(contributors[contrib_index], minimal_font, Point(screen_width / 2, y), TextFlags::center_h);
         }
         else if (mode == CreditRenderMode::SpecialThanks && specialthanks[special_index]) {
           screen.pen = rainbow_colours[colour_index];
@@ -133,10 +133,10 @@ namespace credits {
           if (colour_index >= number_of_colours) {
             colour_index = 0;
           }
-          screen.text(specialthanks[special_index], outline_font, Point(screen_width / 2, y), true, TextAlign::center_h);
+          screen.text(specialthanks[special_index], outline_font, Point(screen_width / 2, y), TextFlags::center_h);
         }
         else { // render regular text
-          screen.text(text_to_render, minimal_font, Point(screen_width / 2, y), true, TextAlign::center_h);
+          screen.text(text_to_render, minimal_font, Point(screen_width / 2, y), TextFlags::center_h);
         }
       }
 

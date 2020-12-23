@@ -391,7 +391,7 @@ void render(uint32_t time) {
         screen.pen = theme.color_text;
 
       int x = 120 + 95 + directory.x - directory_list_scroll_offset;
-      screen.text(directory.name == "/" ? "ROOT" : directory.name, minimal_font, Rect(x, 5, 190, text_align_height), true, TextAlign::center_v);
+      screen.text(directory.name == "/" ? "ROOT" : directory.name, minimal_font, Rect(x, 5, 190, text_align_height), TextFlags::center_v);
     }
 
     screen.clip = Rect(Point(0, 0), screen.bounds);
@@ -412,7 +412,7 @@ void render(uint32_t time) {
       else
         screen.pen = theme.color_text;
 
-      screen.text(file.title, launcher_font, Rect(file_list_scroll_offset.x, y, 90, text_align_height), true, TextAlign::center_v);
+      screen.text(file.title, launcher_font, Rect(file_list_scroll_offset.x, y, 90, text_align_height), TextFlags::center_v);
       y += ROW_HEIGHT;
     }
     screen.clip = Rect(Point(0, 0), screen.bounds);
@@ -460,9 +460,9 @@ void render(uint32_t time) {
     screen.pen = theme.color_text;
 
     if(/*current_directory->name != "FLASH" &&*/ !blit::is_storage_available())
-      screen.text("No SD Card\nDetected.", minimal_font, Point(screen.bounds.w / 2, screen.bounds.h / 2), true, TextAlign::center_center);
+      screen.text("No SD Card\nDetected.", minimal_font, Point(screen.bounds.w / 2, screen.bounds.h / 2), TextFlags::center_center);
     else
-      screen.text("No Games Found.", minimal_font, Point(screen.bounds.w / 2, screen.bounds.h / 2), true, TextAlign::center_center);
+      screen.text("No Games Found.", minimal_font, Point(screen.bounds.w / 2, screen.bounds.h / 2), TextFlags::center_center);
   }
 
   if (currentScreen == Screen::credits) {

@@ -232,7 +232,7 @@ void Profiler::display_probe_overlay(uint8_t uPage)
 					uUseGraphTimeUs = pProbe->get_graph_time_us();
 
 				screen.pen =Pen(255, 255, 255, m_uAlpha);
-				screen.text(pProbe->name(), minimal_font, Rect(m_uBorder, uY, uNameWidth, m_uRowHeight), true, TextAlign::center_v);
+				screen.text(pProbe->name(), minimal_font, Rect(m_uBorder, uY, uNameWidth, m_uRowHeight), TextFlags::center_v);
 
 				uMetricX  = uNameX + uNameWidth;
 				for(uint8_t uM = dmMin; uM <= dmMax; uM++)
@@ -241,7 +241,7 @@ void Profiler::display_probe_overlay(uint8_t uPage)
 					if(m_graphElements[uM].bDisplayLabel)
 					{
 						snprintf(buffer, 64, "%" PRIu32, metrics[uM]);
-						screen.text(buffer, minimal_font, Rect(uMetricX, uY, uMetricWidth, m_uRowHeight), true, TextAlign::center_v);
+						screen.text(buffer, minimal_font, Rect(uMetricX, uY, uMetricWidth, m_uRowHeight), TextFlags::center_v);
 						uMetricX+=uMetricWidth;
 					}
 

@@ -40,7 +40,7 @@ struct {
       screen.rectangle(Rect(0, 215, 320, 25));
       screen.pen = Pen(255, 255, 255);
       screen.text(this->message, minimal_font, Point(5, 220));
-      uint32_t progress_width = ((this->value * 310) / this->total);      
+      uint32_t progress_width = ((this->value * 310) / this->total);
       screen.rectangle(Rect(5, 230, progress_width, 5));
     }
   }
