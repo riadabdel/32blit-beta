@@ -12,19 +12,22 @@
 
 #include "SDL.h"
 
+#include "engine/api_private.hpp"
+
 #include "File.hpp"
 #include "UserCode.hpp"
 
 static std::string basePath;
 
-void setup_base_path()
-{
+void setup_base_path() {
   auto basePathPtr = SDL_GetBasePath();
   basePath = std::string(basePathPtr);
   SDL_free(basePathPtr);
 }
 
-void *open_file(const std::string &name, int mode) {
+namespace blit {
+
+void *API::open_file(const std::string &name, int mode) {
   const char *str_mode;
 
   if(mode == blit::OpenMode::read)
@@ -48,7 +51,7 @@ void *open_file(const std::string &name, int mode) {
   return file;
 }
 
-int32_t read_file(void *fh, uint32_t offset, uint32_t length, char *buffer) {
+int32_t API::read_file(void *fh, uint32_t offset, uint32_t length, char *buffer) {
   auto file = (SDL_RWops *)fh;
 
   if(file && SDL_RWseek(file, offset, RW_SEEK_SET) != -1) {
@@ -61,7 +64,7 @@ int32_t read_file(void *fh, uint32_t offset, uint32_t length, char *buffer) {
   return -1;
 }
 
-int32_t write_file(void *fh, uint32_t offset, uint32_t length, const char *buffer) {
+int32_t API::write_file(void *fh, uint32_t offset, uint32_t length, const char *buffer) {
   auto file = (SDL_RWops *)fh;
 
   if(file && SDL_RWseek(file, offset, RW_SEEK_SET) != -1) {
@@ -74,11 +77,11 @@ int32_t write_file(void *fh, uint32_t offset, uint32_t length, const char *buffe
   return -1;
 }
 
-int32_t close_file(void *fh) {
+int32_t API::close_file(void *fh) {
   return SDL_RWclose((SDL_RWops *)fh) == 0 ? 0 : -1;
 }
 
-uint32_t get_file_length(void *fh)
+uint32_t API::get_file_length(void *fh)
 {
   auto file = (SDL_RWops *)fh;
   SDL_RWseek(file, 0, RW_SEEK_END);
@@ -86,7 +89,7 @@ uint32_t get_file_length(void *fh)
   return (uint32_t)SDL_RWtell(file);
 }
 
-void list_files(const std::string &path, std::function<void(blit::FileInfo &)> callback) {
+void API::list_files(const std::string &path, std::function<void(blit::FileInfo &)> callback) {
 #ifdef WIN32
   HANDLE file;
   WIN32_FIND_DATAA findData;
@@ -149,7 +152,7 @@ void list_files(const std::string &path, std::function<void(blit::FileInfo &)> c
 #endif
 }
 
-bool file_exists(const std::string &path) {
+bool API::file_exists(const std::string &path) {
 #ifdef WIN32
 	DWORD attribs = GetFileAttributesA((basePath + path).c_str());
 	return (attribs != INVALID_FILE_ATTRIBUTES && !(attribs & FILE_ATTRIBUTE_DIRECTORY));
@@ -159,7 +162,7 @@ bool file_exists(const std::string &path) {
 #endif
 }
 
-bool directory_exists(const std::string &path) {
+bool API::directory_exists(const std::string &path) {
 #ifdef WIN32
 	DWORD attribs = GetFileAttributesA((basePath + path).c_str());
 	return (attribs != INVALID_FILE_ATTRIBUTES && (attribs & FILE_ATTRIBUTE_DIRECTORY));
@@ -169,7 +172,7 @@ bool directory_exists(const std::string &path) {
 #endif
 }
 
-bool create_directory(const std::string &path) {
+bool API::create_directory(const std::string &path) {
 #ifdef WIN32
   return _mkdir((basePath + path).c_str()) == 0 || errno == EEXIST;
 #else
@@ -177,17 +180,17 @@ bool create_directory(const std::string &path) {
 #endif
 }
 
-bool rename_file(const std::string &old_name, const std::string &new_name) {
+bool API::rename_file(const std::string &old_name, const std::string &new_name) {
   return rename((basePath + old_name).c_str(), (basePath + new_name).c_str()) == 0;
 }
 
-bool remove_file(const std::string &path) {
+bool API::remove_file(const std::string &path) {
   return remove((basePath + path).c_str()) == 0;
 }
 
 static std::string save_path;
 
-const char *get_save_path() {
+const char *API::get_save_path() {
   auto tmp = SDL_GetPrefPath(metadata_author, metadata_title);
   save_path = std::string(tmp);
 
@@ -196,6 +199,8 @@ const char *get_save_path() {
   return save_path.c_str();
 }
 
-bool is_storage_available() {
+bool API::is_storage_available() {
   return true;
+}
+
 }

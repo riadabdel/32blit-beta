@@ -52,8 +52,7 @@ const char *Profiler::g_pszMetricNames[4]= {"Min", "Cur", "Avg", "Max"};
 
 Profiler::Profiler(uint32_t uRunningAverageSize, uint32_t uRunningAverageSpan ) : m_uGraphTimeUs(20000), m_uRunningAverageSize(uRunningAverageSize), m_uRunningAverageSpan(uRunningAverageSpan), m_uRowHeight(10), m_uBorder(5), m_uHeaderSize(15), m_uAlpha(160)
 {
-  if(api.enable_us_timer)
-	  api.enable_us_timer();
+  api.enable_us_timer();
 
 	// default to lowres
 	set_display_size(160, 120);

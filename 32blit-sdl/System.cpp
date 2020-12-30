@@ -19,14 +19,17 @@ blit::Surface __fb_lores((uint8_t *)framebuffer, blit::PixelFormat::RGB, blit::S
 
 static blit::Pen palette[256];
 
+blit::ScreenMode _mode = blit::ScreenMode::lores;
+std::chrono::steady_clock::time_point start;
+
+namespace blit {
 // blit debug callback
-void blit_debug(const char *message) {
+void API::debug(const char *message) {
 	std::cout << message;
 }
 
-// blit screenmode callback
-blit::ScreenMode _mode = blit::ScreenMode::lores;
-blit::Surface &set_screen_mode(blit::ScreenMode new_mode) {
+  // blit screenmode callback
+blit::Surface &API::set_screen_mode(blit::ScreenMode new_mode) {
 	_mode = new_mode;
     switch(_mode) {
       case blit::ScreenMode::lores:
@@ -43,13 +46,12 @@ blit::Surface &set_screen_mode(blit::ScreenMode new_mode) {
 	return blit::screen;
 }
 
-static void set_screen_palette(const blit::Pen *colours, int num_cols) {
+void API::set_screen_palette(const blit::Pen *colours, int num_cols) {
 	memcpy(palette, colours, num_cols * sizeof(blit::Pen));
 }
 
 // blit timer callback
-std::chrono::steady_clock::time_point start;
-uint32_t now() {
+uint32_t API::now() {
 	auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start);
 	return (uint32_t)elapsed.count();
 }
@@ -64,29 +66,31 @@ std::random_device random_device;
 std::mt19937 random_generator(random_device());
 #endif
 std::uniform_int_distribution<uint32_t> random_distribution;
-uint32_t blit_random() {
+uint32_t API::random() {
 	return random_distribution(random_generator);
 }
 
 
 // us timer used by profiler
 
-void enable_us_timer()
-{
+void API::enable_us_timer() {
 	// Enable/initialise timer
 }
 
-uint32_t get_us_timer()
-{
+uint32_t API::get_us_timer() {
 	// get current time in us
 	uint64_t ticksPerUs = SDL_GetPerformanceFrequency() / 1000000;
 	return SDL_GetPerformanceCounter() / ticksPerUs;
 }
 
-uint32_t get_max_us_timer()
-{
+uint32_t API::get_max_us_timer() {
 	// largest us value timer can produce for wrapping
 	return UINT32_MAX;
+}
+
+//stubs for "device-only" APIs
+bool API::launch(const char *){return false;}
+void API::erase_game(uint32_t){}
 }
 
 // SDL events
@@ -130,38 +134,12 @@ void System::run() {
 
 	start = std::chrono::steady_clock::now();
 
-	blit::api.now = ::now;
-	blit::api.random = ::blit_random;
-	blit::api.debug = ::blit_debug;
-	blit::api.set_screen_mode = ::set_screen_mode;
-	blit::api.set_screen_palette = ::set_screen_palette;
 	blit::update = ::update;
 	blit::render = ::render;
 
 	setup_base_path();
 
-	blit::api.open_file = ::open_file;
-	blit::api.read_file = ::read_file;
-	blit::api.write_file = ::write_file;
-	blit::api.close_file = ::close_file;
-	blit::api.get_file_length = ::get_file_length;
-	blit::api.list_files = ::list_files;
-	blit::api.file_exists = ::file_exists;
-	blit::api.directory_exists = ::directory_exists;
-	blit::api.create_directory = ::create_directory;
-	blit::api.rename_file = ::rename_file;
-	blit::api.remove_file = ::remove_file;
-	blit::api.get_save_path = ::get_save_path;
-	blit::api.is_storage_available = ::is_storage_available;
-
-	blit::api.enable_us_timer = ::enable_us_timer;
-	blit::api.get_us_timer = ::get_us_timer;
-	blit::api.get_max_us_timer = ::get_max_us_timer;
-
-	blit::api.decode_jpeg_buffer = blit_decode_jpeg_buffer;
-	blit::api.decode_jpeg_file = blit_decode_jpeg_file;
-
-	::set_screen_mode(blit::lores);
+	blit::set_screen_mode(blit::lores);
 
 #ifdef __EMSCRIPTEN__
 	::init();
@@ -227,7 +205,7 @@ void System::loop()
 	blit::joystick.x = shadow_joystick[0];
 	blit::joystick.y = shadow_joystick[1];
 	SDL_UnlockMutex(m_input);
-	blit::tick(::now());
+	blit::tick(blit::now());
 }
 
 Uint32 System::mode() {
@@ -235,7 +213,7 @@ Uint32 System::mode() {
 }
 
 void System::update_texture(SDL_Texture *texture) {
-	blit::render(::now());
+	blit::render(blit::now());
 	if (_mode == blit::ScreenMode::lores) {
 		SDL_UpdateTexture(texture, nullptr, __fb_lores.data, 160 * 3);
 	}

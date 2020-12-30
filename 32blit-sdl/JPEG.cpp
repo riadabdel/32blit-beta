@@ -5,8 +5,7 @@
 
 #include "JPEG.hpp"
 
-static blit::JPEGImage decode_jpeg_rwops(SDL_RWops *rwops)
-{
+static blit::JPEGImage decode_jpeg_rwops(SDL_RWops *rwops) {
   auto image = IMG_LoadJPG_RW(rwops);
   SDL_RWclose(rwops);
   blit::JPEGImage ret = {};
@@ -25,13 +24,17 @@ static blit::JPEGImage decode_jpeg_rwops(SDL_RWops *rwops)
   return ret;
 }
 
+namespace blit {
+
 // these don't bother using the allocation callback since there's only one heap anyway
-blit::JPEGImage blit_decode_jpeg_buffer(const uint8_t *ptr, uint32_t len, blit::AllocateCallback alloc) {
+blit::JPEGImage API::decode_jpeg_buffer(const uint8_t *ptr, uint32_t len, blit::AllocateCallback alloc) {
   auto rwops = SDL_RWFromConstMem(ptr, len);
   return decode_jpeg_rwops(rwops);
 }
 
-blit::JPEGImage blit_decode_jpeg_file(const std::string &filename, blit::AllocateCallback alloc) {
+blit::JPEGImage API::decode_jpeg_file(const std::string &filename, blit::AllocateCallback alloc) {
   auto rwops = SDL_RWFromFile(filename.c_str(), "rb");
   return decode_jpeg_rwops(rwops);
+}
+
 }
