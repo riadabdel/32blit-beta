@@ -3,6 +3,7 @@
 #include <map>
 
 #ifdef WIN32
+#define NOMINMAX
 #include <direct.h>
 #include <shlobj.h>
 #else
