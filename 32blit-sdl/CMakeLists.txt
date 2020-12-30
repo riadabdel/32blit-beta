@@ -83,10 +83,12 @@ target_link_libraries(BlitHalSDL PUBLIC BlitEngine ${SDL2_LIBRARIES} ${SDL2_IMAG
 # copy SDL2.dll to build/install dir for windows users
 if(SDL2_DLL)
 	install(FILES ${SDL2_DLL} DESTINATION bin)
+	message("Found SDL2.dll: ${SDL2_DLL}")
 endif()
 
 if(SDL2_IMAGE_DLL)
 	install(FILES ${SDL2_IMAGE_DLL} DESTINATION bin)
+	message("Found SDL2_image.dll: ${SDL2_IMAGE_DLL}")
 endif()
 
 if(DEFINED VIDEO_CAPTURE AND VIDEO_CAPTURE)
@@ -134,6 +136,7 @@ function(blit_executable NAME SOURCES)
 
     # windows dll fun
     if(SDL2_DLL)
+    	message("Copying SDL2.dll to build dir for ${NAME}")
         configure_file(${SDL2_DLL} ${CMAKE_CURRENT_BINARY_DIR}/SDL2.dll COPYONLY)
     endif()
 
