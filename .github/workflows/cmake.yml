@@ -68,21 +68,21 @@ jobs:
       if: runner.os == 'Linux'
       run: |
         sudo apt update && sudo apt install ${{matrix.apt-packages}}
-        pip3 install 32blit
+        pip3 install 32blit requests
 
     # macOS deps
     - name: Install deps
       if: runner.os == 'macOS'
       run: |
         ci/install_sdl_macos.sh
-        python3 -m pip install 32blit
+        python3 -m pip install 32blit requests
 
     # Windows (VS) deps
     - name: Install deps
       if: runner.os == 'Windows'
       shell: bash
       run: |
-        python -m pip install 32blit
+        python -m pip install 32blit requests
 
     - name: MinGW deps
       if: matrix.name == 'MinGW'
