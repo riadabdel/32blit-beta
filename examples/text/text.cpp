@@ -33,12 +33,26 @@ std::string alignment_to_string(TextAlign alignment) {
 
 void init() {
   set_screen_mode(ScreenMode::hires);
+
+  screen.sprites = SpriteSheet::load(asset_dingbads);
 }
 
 void render(uint32_t time) {
   screen.clip = Rect(Point(0, 0), screen.bounds);
   screen.pen = Pen(0, 0, 0);
   screen.clear();
+
+  //
+  {
+  Rect text_rect(20, 20, 280, 200);
+  auto test_text = screen.wrap_text("##\nThis is some text!\nChanging the #cf00 col#c7f0000 our #cd mid-string.\nAlso switching between #wv variable and #wf fixed #wd width!\n#s0 Sprites #s1  in #s9,2  text#s1,15 ", text_rect.w, minimal_font, variable_width);
+
+  screen.pen = Pen(0xFF, 0xFF, 0xFF);
+  screen.text(test_text, minimal_font, text_rect, variable_width, alignment);
+
+  return;
+  }
+  //
 
   screen.alpha = 255;
   screen.pen = Pen(255, 255, 255);

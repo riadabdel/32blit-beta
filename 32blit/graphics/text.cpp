@@ -1,4 +1,4 @@
-
+#include <charconv>
 #include <string>
 
 #include "../types/point.hpp"
@@ -38,6 +38,9 @@ namespace blit {
     if(!clip.intersects(r))
       return;
 
+    auto saved_pen = pen;
+    bool initial_variable = variable;
+
     // check vertical alignment
     if ((align & 0b11) != TextAlign::top) {
       Size bounds = measure_text(message, font, variable);
@@ -61,9 +64,83 @@ namespace blit {
     const int height_bytes = (font.char_h + 7) / 8;
     const int char_size = font.char_w * height_bytes;
 
-    size_t char_off = 0;
+    for (size_t char_off = 0; char_off < message.length(); char_off++) {
+      char chr = message[char_off];
 
-    for (char chr : message) {
+      if(chr == '#' && char_off + 2 != message.length()) {
+        char_off += 2;
+        auto start = char_off;
+
+        auto from_hex = [&message](int start, int len = 1){
+          int val = 0;
+          std::from_chars(message.data() + start, message.data() + start + len, val, 16);
+          return val;
+        };
+
+        switch(message[char_off - 1]) {
+          // colour
+          case 'c':
+            while(message[char_off] != ' ') char_off++;
+            if(char_off - start == 3) {
+              pen.r = from_hex(start + 0) * 0x11;
+              pen.g = from_hex(start + 1) * 0x11;
+              pen.b = from_hex(start + 2) * 0x11;
+            } else if(char_off - start == 6) {
+              pen.r = from_hex(start + 0, 2);
+              pen.g = from_hex(start + 2, 2);
+              pen.b = from_hex(start + 4, 2);
+            } else if(message[start] == 'd')
+              pen = saved_pen;
+
+            continue;
+
+          // sprite
+          case 's': {
+            while(message[char_off] != ' ' && message[char_off] != ',') char_off++;
+
+            // x,y
+            if(message[char_off] == ',') {
+              int x = 0, y = 0;
+              std::from_chars(message.data() + start, message.data() + char_off, x);
+              start = ++char_off;
+
+              while(message[char_off] != ' ') char_off++;
+              std::from_chars(message.data() + start, message.data() + char_off, y);
+
+              sprite(Point(x, y), c);
+            } else {
+              // index
+              int index = 0;
+              std::from_chars(message.data() + start, message.data() + char_off, index);
+              sprite(index, c);
+            }
+
+            c.x += 8;
+
+            continue;
+          }
+
+          // variable/fixed-width
+          case 'w':
+            if(message[char_off] == 'f')
+              variable = false;
+            else if(message[char_off] == 'v')
+              variable = true;
+            else if(message[char_off] == 'd')
+              variable = initial_variable;
+
+            char_off++;
+            continue;
+
+          case '#': // ## for a #
+            char_off--;
+            break;
+
+          default:
+            char_off -= 2;
+        }
+      }
+
       // draw character
 
       uint8_t chr_idx = chr & 0x7F;
@@ -119,12 +196,12 @@ namespace blit {
             c.x += (r.w - bounds.w) / 2;
         }
       }
-
-      char_off++;
     }
+
+    pen = saved_pen;
   }
 
-  uint8_t get_char_width(const Font &font, char c, bool variable) {
+  static uint8_t get_char_width(const Font &font, char c, bool variable) {
     if (!variable)
       return font.char_w;
 
@@ -140,11 +217,13 @@ namespace blit {
    * \param message Text to measure
    * \param font Font to use for measurement
    * \param variable Use variable character widths
-   * 
+   *
    * \returns Measured Size of text
    */
   Size Surface::measure_text(std::string_view message, const Font &font, bool variable) {
     const int line_height = font.char_h + font.spacing_y;
+
+    bool initial_variable = variable;
 
     Size bounds(0, 0);
 
@@ -152,6 +231,38 @@ namespace blit {
     int line_len = 0;
 
     while (char_off < message.length()) {
+
+      if(message[char_off] == '#' && char_off + 1 != message.length()) {
+        char_off += 2;
+
+        switch(message[char_off - 1]) {
+          case 's':
+            line_len += 8;
+          case 'c':
+            while(message[char_off] != ' ') char_off++;
+            char_off++;
+            continue;
+
+          case 'w':
+            if(message[char_off] == 'f')
+              variable = false;
+            else if(message[char_off] == 'v')
+              variable = true;
+            else if(message[char_off] == 'd')
+              variable = initial_variable;
+
+            char_off += 2;
+            continue;
+
+          case '#': // ## for a #
+            char_off--;
+            break;
+
+          default:
+            char_off -= 2;
+        }
+      }
+
       // newline
       if (message[char_off] == '\n') {
         if (line_len > bounds.w)
@@ -161,8 +272,8 @@ namespace blit {
 
         line_len = 0;
         char_off++;
-      } else if (variable) {
-        line_len += get_char_width(font, message[char_off], true);
+      } else if (variable || true) {
+        line_len += get_char_width(font, message[char_off], variable);
         char_off++;
       } else {
         // calculate a line at a time if using fixed-width characters
@@ -193,17 +304,49 @@ namespace blit {
  * \param font Font to use for measurement
  * \param variable Use variable character widths
  * \param words Attempt to break lines between words if `true`
- * 
+ *
  * \returns Wrapped text
  */
 std::string Surface::wrap_text(std::string_view message, int32_t width, const Font &font, bool variable, bool words) {
   std::string ret;
+
+  bool initial_variable = variable;
 
   int current_x = 0;
   size_t last_space = std::string::npos;
   size_t copied_off = 0;
 
   for (size_t i = 0; i < message.length(); i++) {
+    if(message[i] == '#' && i + 2 != message.length()) {
+      i += 2;
+
+      switch(message[i - 1]) {
+        case 's':
+            current_x += 8;
+        case 'c':
+          while(message[i] != ' ') i++;
+          continue;
+
+        case 'w':
+          if(message[i] == 'f')
+            variable = false;
+          else if(message[i] == 'v')
+            variable = true;
+          else if(message[i] == 'd')
+            variable = initial_variable;
+
+          i++;
+          continue;
+
+        case '#': // ## for a #
+          i--;
+          break;
+
+        default:
+          i -= 2;
+      }
+    }
+
     if (message[i] == ' ')
       last_space = i;
 
