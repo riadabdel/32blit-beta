@@ -126,7 +126,7 @@ jobs:
     #  run: ctest -C $BUILD_TYPE
 
     - name: Package Release
-      if: github.event_name == 'release' && matrix.release-suffix != ''
+      #if: github.event_name == 'release' && matrix.release-suffix != ''
       shell: bash
       working-directory: ${{runner.workspace}}/build
       run: |
