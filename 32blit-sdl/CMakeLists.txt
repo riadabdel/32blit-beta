@@ -206,7 +206,7 @@ function(blit_executable NAME SOURCES)
 		message("Using fixup_bundle")
 		file(GENERATE OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/fixup.cmake
 			CONTENT "
-				message(\"Runninf fixup_bundle\")
+				message(\"Running fixup_bundle \${CMAKE_INSTALL_PREFIX}/bin/$<TARGET_FILE_NAME:${NAME}>.app\")
 				include(BundleUtilities)
 				fixup_bundle(\"\${CMAKE_INSTALL_PREFIX}/bin/$<TARGET_FILE_NAME:${NAME}>.app\" \"\" \"\")
 			"
