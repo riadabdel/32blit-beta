@@ -150,25 +150,24 @@ namespace blit {
     }
   }
 
-  /*
-  void tilemap::mipmap_texture_span(surface *dest, point s, uint16_t c, vec2 swc, vec2 ewc) {
+  void TileMap::mipmap_texture_span(Surface *dest, Point s, uint16_t c, Vec2 swc, Vec2 ewc) {
     // calculate the mipmap index to use for drawing
     float span_length = (ewc - swc).length();
     float mipmap = ((span_length / float(c)) / 2.0f);
-    int16_t mipmap_index = floor(mipmap);
-    uint8_t blend = (mipmap - floor(mipmap)) * 255;
+    uint16_t mipmap_index = floorf(mipmap);
+    uint8_t blend = (mipmap - floorf(mipmap)) * 255;
 
-    mipmap_index = mipmap_index >= (int)sprites->s.mipmaps.size() ? sprites->s.mipmaps.size() - 1 : mipmap_index;
+    mipmap_index = mipmap_index >= sprites->mipmaps.size() ? uint16_t(sprites->mipmaps.size() - 1) : mipmap_index;
     mipmap_index = mipmap_index < 0 ? 0 : mipmap_index;
 
     dest->alpha = 255;
-    texture_span(dest, s, c, swc, ewc, mipmap_index);
+    texture_span(dest, s, c, swc, ewc, sprites->mipmaps[mipmap_index], mipmap_index);
 
-    if (++mipmap_index < sprites->s.mipmaps.size()) {
+    if (++mipmap_index < sprites->mipmaps.size()) {
       dest->alpha = blend;
-      texture_span(dest, s, c, swc, ewc, mipmap_index);
+      texture_span(dest, s, c, swc, ewc, sprites->mipmaps[mipmap_index], mipmap_index);
     }
-  }*/
+  }
 
   /**
    * TODO: Document
@@ -179,8 +178,11 @@ namespace blit {
    * \param[in] swc
    * \param[in] ewc
    */
-  void TileMap::texture_span(Surface *dest, Point s, unsigned int c, Vec2 swc, Vec2 ewc) {
-    Surface *src = sprites;
+  void TileMap::texture_span(Surface *dest, Point s, unsigned int c, Vec2 swc, Vec2 ewc, Surface *src, unsigned int mipmap_index) {
+    if(!src)
+      src = sprites;
+
+    const int tile_size = 8 >> mipmap_index;
 
     static const int fix_shift = 16;
 
@@ -199,19 +201,19 @@ namespace blit {
         uint8_t transform = transforms ? transforms[toff] : 0;
 
         // coordinate within sprite
-        int u = wcx & 0b111;
-        int v = wcy & 0b111;
+        int u = (wcx & 0b111) >> mipmap_index;
+        int v = (wcy & 0b111) >> mipmap_index;
 
         // if this tile has a transform then modify the uv coordinates
         if (transform) {
-          v = (transform & 0b010) ? (7 - v) : v;
-          u = (transform & 0b100) ? (7 - u) : u;
+          v = (transform & 0b010) ? ((tile_size - 1) - v) : v;
+          u = (transform & 0b100) ? ((tile_size - 1) - u) : u;
           if (transform & 0b001) { int tmp = u; u = v; v = tmp; }
         }
 
         // sprite sheet coordinates for top left corner of sprite
-        u += (tile_id & 0b1111) * 8;
-        v += (tile_id >> 4) * 8;
+        u += (tile_id & 0b1111) * tile_size;
+        v += (tile_id >> 4) * tile_size;
 
         // draw as many pixels as possible
         int count = 0;
