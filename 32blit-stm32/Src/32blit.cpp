@@ -485,7 +485,7 @@ void blit_menu() {
     api.tick_function_changed = true;
 
     if(screen.format == PixelFormat::P) {
-      memcpy(menu_saved_colours, screen.palette, num_menu_colours * sizeof(Pen));
+      memcpy(menu_saved_colours, screen.palette.get(), num_menu_colours * sizeof(Pen));
       set_screen_palette(menu_colours, num_menu_colours);
     }
   }

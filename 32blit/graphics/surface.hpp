@@ -119,7 +119,7 @@ namespace blit {
     uint16_t                        row_stride;               // bytes per row
 
     Surface                        *mask = nullptr;           // optional mask
-    Pen                            *palette = nullptr;        // palette entries (for paletted images)
+    std::shared_ptr<Pen[]>          palette = nullptr;        // palette entries (for paletted images)
 
     Surface                        *sprites = nullptr;        // active spritesheet
 

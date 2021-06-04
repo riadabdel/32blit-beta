@@ -30,7 +30,7 @@ namespace blit {
   // subset of Surface for API compat
   struct SurfaceInfo {
     SurfaceInfo() = default;
-    SurfaceInfo(const Surface &surf): data(surf.data), bounds(surf.bounds), format(surf.format), palette(surf.palette) {}
+    SurfaceInfo(const Surface &surf): data(surf.data), bounds(surf.bounds), format(surf.format), palette(surf.palette.get()) {}
     SurfaceInfo(const SurfaceTemplate &surf): data(surf.data), bounds(surf.bounds), format(surf.format), palette(surf.palette) {}
 
     uint8_t *data = nullptr;
