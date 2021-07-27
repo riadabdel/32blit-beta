@@ -25,7 +25,7 @@ static const blit::SurfaceTemplate __fb_lores{framebuffer, blit::Size(160, 120),
 
 // blit debug callback
 void blit_debug(const char *message) {
-	std::cout << message;
+  SDL_Log("%s", message);
 }
 
 // blit screenmode callback
