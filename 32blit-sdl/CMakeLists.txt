@@ -164,6 +164,10 @@ function(blit_executable NAME SOURCES)
 		add_executable(${NAME} MACOSX_BUNDLE ${SOURCES} ${ARGN})
 	endif()
 
+	# Set release builds as A GUI app to remove the console, this requires CMake 3.19 for the CONFIG expression
+	# which happens to be the version provided by VS 2019
+	set_target_properties(${NAME} PROPERTIES WIN32_EXECUTABLE $<CONFIG:Release>)
+
 	install(TARGETS ${NAME}
 		LIBRARY DESTINATION lib
 		RUNTIME DESTINATION bin
