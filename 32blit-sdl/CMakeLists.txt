@@ -116,6 +116,11 @@ endif()
 
 target_link_libraries(BlitHalSDL PUBLIC BlitEngine ${SDL2_LIBRARIES} ${SDL2_IMAGE_LIBRARY} ${SDL2_NET_LIBRARY})
 
+# SDL's config file contains -mwindows in the library list, force back to console for non-release builds
+if(MINGW)
+	target_link_libraries(BlitHalSDL PUBLIC $<$<NOT:$<CONFIG:Release>>:-mconsole>)
+endif()
+
 # copy SDL2 dlls to build/install dir for windows users
 if(SDL2_DLL)
 	install(FILES ${SDL2_DLL} DESTINATION bin)
