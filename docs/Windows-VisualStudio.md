@@ -20,7 +20,7 @@ Make sure you install C++ desktop development support.
 
 You will also need SDL2 development libraries and the SDL2_image library.
 
-* Download SDL2 development libraries from the [SDL homepage](https://www.libsdl.org/download-2.0.php). Here find the latest version of the VC development libraries (at the time of this writing *SDL2-devel-2.0.14-VC.zip*).
+* Download SDL2 development libraries from the [SDL homepage](https://www.libsdl.org/download-2.0.php). Here find the latest version of the VC development libraries (at the time of this writing *SDL2-devel-2.0.16-VC.zip*).
 * Download SDL2_image from [here](https://www.libsdl.org/projects/SDL_image/) (*SDL2_image-devel-2.0.5-VC.zip*).
 * Download SDL2_net from [here](https://www.libsdl.org/projects/SDL_net/) (*SDL2_net-devel-2.0.1-VC.zip*).
 
@@ -113,4 +113,4 @@ There is also a skeleton game project created for you at https://github.com/32bl
 
 ## Troubleshooting
 
-If you see errors such as `Cannot open include file: 'SDL.h': No such file or directory` and `cannot open file 'SDL2.lib'` you've probably extracted the SDL development libraries wrong. Inside your sdl folder you should have the folders docs, include and lib not SDL2-2.0.14.
+If you see errors such as `Cannot open include file: 'SDL.h': No such file or directory` and `cannot open file 'SDL2.lib'` you've probably extracted the SDL development libraries wrong. Inside your sdl folder you should have the folders docs, include and lib not SDL2-2.0.16.

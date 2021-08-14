@@ -25,10 +25,10 @@ endfunction(fetch_sdl2_library)
 if(NOT EXISTS ${CMAKE_CURRENT_LIST_DIR}/include)
 
     fetch_sdl2_library(
-        SDL2-2.0.14
+        SDL2-2.0.16
         https://www.libsdl.org/release/
-        SDL2-devel-2.0.14-VC.zip
-        6839b6ec345ef754a6585ab24f04e125e88c3392
+        SDL2-devel-2.0.16-VC.zip
+        13d952c333f3c2ebe9b7bc0075b4ad2f784e7584
     )
 
     fetch_sdl2_library(
