@@ -76,6 +76,10 @@ function(blit_executable_int_flash NAME SOURCES)
     pico_enable_stdio_usb(${NAME} 0)
 
     pico_add_extra_outputs(${NAME})
+
+	install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${NAME}.uf2
+		DESTINATION bin
+	)
 endfunction()
 
 function(blit_executable NAME SOURCES)
