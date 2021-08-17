@@ -395,7 +395,7 @@ namespace blit {
     uint8_t* m = dest->mask ? dest->mask->data + doff : nullptr;
 
     // solid fill/blend
-    if(!m && src_step == 0 && cnt > 1) {
+    if(src_step == 0 && !m && cnt > 1) {
       Pen *pen = src->palette ? &src->palette[*s] : (Pen *)s;
 
       uint16_t a = src->format == PixelFormat::RGB ? 255 : pen->a;
@@ -417,23 +417,34 @@ namespace blit {
 
     auto d16 = (uint16_t *)d;
 
+    uint32_t step = (src->pixel_stride) * src_step;
+
     do {
-      Pen *pen = src->palette ? &src->palette[*s] : (Pen *)s;
+      Pen *pen;
+      uint16_t a;
 
-      uint16_t a = src->format == PixelFormat::RGB ? 255 : pen->a;
-      a = m ? alpha(a, *m++, dest->alpha) : alpha(a, dest->alpha);
-
-      if (a >= 255) {
-        *d16++ = pack_rgb565(pen->r, pen->g, pen->b);
-      } else if (a > 1) {
-        uint8_t r, g, b;
-        unpack_rgb565(*d16, r, g, b);
-        *d16++ = pack_rgb565(blend(pen->r, r, a), blend(pen->g, g, a), blend(pen->b, b, a));
-      }else{
-        d16++;
+      if(src->palette) {
+        pen = &src->palette[*s];
+        a = pen->a;
+      } else {
+        pen = (Pen *)s;
+        a = src->format == PixelFormat::RGB ? 255 : pen->a;
       }
 
-      s += (src->pixel_stride) * src_step;
+      if(a) {
+        a = m ? alpha(a, *m++, dest->alpha) : alpha(a, dest->alpha);
+
+        if (a >= 255)
+          *d16 = pack_rgb565(pen->r, pen->g, pen->b);
+        else if (a > 1) {
+          uint8_t r, g, b;
+          unpack_rgb565(*d16, r, g, b);
+          *d16 = pack_rgb565(blend(pen->r, r, a), blend(pen->g, g, a), blend(pen->b, b, a));
+        }
+      }
+
+      d16++;
+      s += step;
     } while (--cnt);
   }
 
