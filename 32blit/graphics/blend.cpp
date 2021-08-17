@@ -146,45 +146,45 @@ namespace blit {
     b = (rgb565 >> 11) & 0x1F; b = b << 3;
   }
 
+  __attribute__((always_inline)) inline uint16_t blend_rgb565(uint16_t s, uint16_t d, uint8_t a) {
+    // red/blue
+    uint32_t s_rb = (s | (s << 5)) & 0x1F001F, d_rb = (d | (d << 5)) & 0x1F001F;
+    uint32_t res_rb = (d_rb + ((a * (s_rb - d_rb)) >> 8)) & 0x1F001F;
+
+    // green
+    uint16_t s_g = s & 0x7E0, d_g = d & 0x7E0;
+    uint32_t res_g = (d_g + ((a * (s_g - d_g)) >> 8)) & 0x7E0;
+
+    return res_rb | res_g | (res_rb >> 5);
+  }
+
   __attribute__((always_inline)) inline void blend_rgba_rgb565(const Pen *s, uint8_t *d, uint8_t a, uint32_t c) {
     auto *d16 = (uint16_t *)d;
-    uint8_t r, g, b;
+
+    uint16_t s565 = pack_rgb565(s->r, s->g, s->b);
 
     if (c == 1) {
-      // fast case for single pixel draw
-      unpack_rgb565(*d16, r, g, b);
-      *d16 = pack_rgb565(blend(s->r, r, a), blend(s->g, g, a), blend(s->b, b, a));
+      *d16 = blend_rgb565(s565, *d16, a);
       return;
     }
 
     // align
     auto de = d16 + c;
-    if (uintptr_t(d) & 0b10) {
-      unpack_rgb565(*d16, r, g, b);
-      *d16++ = pack_rgb565(blend(s->r, r, a), blend(s->g, g, a), blend(s->b, b, a));
-    }
+    if (uintptr_t(d) & 0b10)
+      *d16 = blend_rgb565(s565, *d16, a);
 
     // destination is now aligned
     uint32_t *d32 = (uint32_t*)d16;
 
     // copy four bytes at a time until we have fewer than four bytes remaining
     uint32_t c32 = uint32_t(de - d16) >> 1;
-    while (c32--) {
-      uint8_t r2, g2, b2;
-
-      unpack_rgb565(*d32, r, g, b);
-      unpack_rgb565(*d32 >> 16, r2, g2, b2);
-
-      *d32++ = pack_rgb565(blend(s->r, r, a), blend(s->g, g, a), blend(s->b, b, a))
-             | pack_rgb565(blend(s->r, r2, a), blend(s->g, g2, a), blend(s->b, b2, a)) << 16;
-    }
+    while (c32--)
+      *d32++ = blend_rgb565(s565, *d32, a) | blend_rgb565(s565, *d32 >> 16, a) << 16;
 
     // copy the trailing bytes as needed
     d16 = (uint16_t*)d32;
-    if (d16 < de) {
-      unpack_rgb565(*d16, r, g, b);
-      *d16 = pack_rgb565(blend(s->r, r, a), blend(s->g, g, a), blend(s->b, b, a));
-    }
+    if (d16 < de)
+      *d16 = blend_rgb565(s565, *d16, a);
   }
 
   __attribute__((always_inline)) inline void copy_rgba_rgb565(const Pen* s, uint8_t *d, uint32_t c) {
