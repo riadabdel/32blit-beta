@@ -171,7 +171,7 @@ namespace blit {
     // align
     auto de = d16 + c;
     if (uintptr_t(d) & 0b10)
-      *d16 = blend_rgb565(s565, *d16, a);
+      *d16++ = blend_rgb565(s565, *d16, a);
 
     // destination is now aligned
     uint32_t *d32 = (uint32_t*)d16;
