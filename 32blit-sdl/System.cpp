@@ -19,9 +19,9 @@ extern Input *blit_input;
 static uint8_t framebuffer[320 * 240 * 3];
 static blit::Pen palette[256];
 
-static const blit::SurfaceTemplate __fb_hires{framebuffer, blit::Size(320, 240), blit::PixelFormat::RGB, nullptr};
+static const blit::SurfaceTemplate __fb_hires{framebuffer, blit::Size(240, 240), blit::PixelFormat::RGB565, nullptr};
 static const blit::SurfaceTemplate __fb_hires_pal{framebuffer, blit::Size(320, 240), blit::PixelFormat::P, palette};
-static const blit::SurfaceTemplate __fb_lores{framebuffer, blit::Size(160, 120), blit::PixelFormat::RGB, nullptr};
+static const blit::SurfaceTemplate __fb_lores{framebuffer, blit::Size(120, 120), blit::PixelFormat::RGB565, nullptr};
 
 // blit debug callback
 void blit_debug(const char *message) {
@@ -321,7 +321,7 @@ Uint32 System::format() {
 
 void System::update_texture(SDL_Texture *texture) {
   bool is_lores = _mode == blit::ScreenMode::lores;
-  auto stride = (is_lores ? 160 : 320) * blit::pixel_format_stride[int(cur_format)];
+  auto stride = (is_lores ? 120 : 240) * blit::pixel_format_stride[int(cur_format)];
 
   if(cur_format == blit::PixelFormat::P) {
     uint8_t col_fb[320 * 240 * 3];
