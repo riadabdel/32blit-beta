@@ -78,6 +78,16 @@ elseif(DEFINED PICO_ADDON)
             DISPLAY_ST7789
             INPUT_GPIO # only ABXY
         )
+    elseif(${PICO_ADDON} STREQUAL "display_pack")
+        target_compile_definitions(BlitHalPico INTERFACE
+            DISPLAY_ST7789
+            ST7789_HEIGHT=135
+            INPUT_GPIO # only ABXY
+            LED_INVERTED
+            LED_R_PIN=6
+            LED_G_PIN=7
+            LED_B_PIN=8
+        )
     else()
         message(FATAL_ERROR "Unknown add-on ${PICO_ADDON}!")
     endif()
