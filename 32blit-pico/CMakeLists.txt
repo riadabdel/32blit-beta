@@ -72,6 +72,20 @@ elseif(${PICO_BOARD} STREQUAL "pimoroni_picosystem")
             AUDIO_BEEP
         )
     endif()
+elseif(DEFINED PICO_ADDON)
+    message(STATUS "No config for \"${PICO_BOARD}\", checking for add-on \"${PICO_ADDON}\"")
+    if(${PICO_ADDON} STREQUAL "explorer_base")
+        set(AUDIO_PIN 7 CACHE STRING "Pin for audio output")
+
+        target_compile_definitions(BlitHalPico INTERFACE
+            AUDIO_BEEP_PIN=${AUDIO_PIN} # not connected to anything by default
+            AUDIO_BEEP
+            DISPLAY_ST7789
+            INPUT_GPIO # only ABXY
+        )
+    else()
+        message(FATAL_ERROR "Unknown add-on ${PICO_ADDON}!")
+    endif()
 else()
     message(WARNING "Using default config for \"${PICO_BOARD}\"...")
     target_link_libraries(BlitHalPico INTERFACE pico_audio_i2s)
