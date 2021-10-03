@@ -132,6 +132,112 @@ static void send_handshake(bool is_reply = false) {
 }
 #endif
 
+// hid
+#if defined(USB_HOST) && defined(INPUT_USB_HID)
+
+static bool is_switch = false;
+
+void tuh_hid_mount_cb(uint8_t dev_addr, uint8_t instance, uint8_t const* desc_report, uint16_t desc_len) {
+  uint16_t vid = 0, pid = 0;
+  tuh_vid_pid_get(dev_addr, &vid, &pid);
+
+  printf("Mount %i %i, %04x:%04x\n", dev_addr, instance, vid, pid);
+
+  is_switch = (vid == 0x20d6 && pid == 0xa711); //PowerA wired pro controller
+
+  // TODO parse report descriptor
+
+  if(!tuh_hid_receive_report(dev_addr, instance)) {
+    printf("Cound not request report!\n");
+  }
+}
+
+// should this be here or in input.cpp?
+void tuh_hid_report_received_cb(uint8_t dev_addr, uint8_t instance, uint8_t const* report, uint16_t len) {
+  auto protocol = tuh_hid_interface_protocol(dev_addr, instance);
+
+  // hat -> dpad
+  const uint32_t dpad_map[]{
+    blit::Button::DPAD_UP,
+    blit::Button::DPAD_UP | blit::Button::DPAD_RIGHT,
+    blit::Button::DPAD_RIGHT,
+    blit::Button::DPAD_DOWN | blit::Button::DPAD_RIGHT,
+    blit::Button::DPAD_DOWN,
+    blit::Button::DPAD_DOWN | blit::Button::DPAD_LEFT,
+    blit::Button::DPAD_LEFT,
+    blit::Button::DPAD_UP | blit::Button::DPAD_LEFT,
+    0
+  };
+
+  uint8_t joystick_x = 0x80, joystick_y = 0x80;
+
+  uint32_t buttons = 0;
+
+  if(is_switch) {
+    // Y,  B,  A,  X,  L,  R, ZL, ZR
+    // -,  +, LS, RS, Ho, SS
+    joystick_x = report[3];
+    joystick_y = report[4];
+
+    int dpad = std::min(8, report[2] & 0xF);
+    buttons = dpad_map[dpad];
+
+    const uint8_t button_map[]{
+       2,  4, // A
+       1,  5, // B
+       3,  6, // X
+       0,  7, // Y
+       8,  8, // MENU (mapped to -)
+      12,  9, // HOME
+      10, 10 // JOYSTICK
+    };
+
+    for(int i = 0; i < sizeof(button_map); i += 2) {
+      int byte = button_map[i] >>  3;
+      int bit = button_map[i] & 7;
+      if(report[byte] & (1 << bit))
+        buttons |= (1 << button_map[i + 1]);
+    }
+
+  } else if(report[0] == 1) {
+    // layout roughly matches the PS4 report from the controller example, but the mapping is for my Razer Raiju Mobile
+    joystick_x = report[1];
+    joystick_y = report[2];
+    // 3 = z, 4 =rotation
+
+    // DPAD         ,  A,  B,  ?,  X
+    // Y,  ?, L1, R1, L2, R2, Se, St
+    // ?, LS, RS, Ho, Ba
+
+    const uint8_t button_map[]{
+      44,  4, // A
+      45,  5, // B
+      47,  6, // X
+      48,  7, // Y
+      60,  8, // MENU (mapped to Back)
+      59,  9, // HOME
+      57, 10 // JOYSTICK
+    };
+
+    buttons = dpad_map[report[5] & 0xF];
+
+    for(int i = 0; i < sizeof(button_map); i += 2) {
+      int byte = button_map[i] >>  3;
+      int bit = button_map[i] & 7;
+      if(report[byte] & (1 << bit))
+        buttons |= (1 << button_map[i + 1]);
+    }
+  }
+
+  blit::api.buttons = buttons;
+  blit::api.joystick.x = (float(joystick_x) - 0x80) / 0x80;
+  blit::api.joystick.y = (float(joystick_y) - 0x80) / 0x80;
+
+  // next report
+  tuh_hid_receive_report(dev_addr, instance);
+}
+#endif
+
 void init_usb() {
   tusb_init();
 }
