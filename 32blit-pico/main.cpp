@@ -250,34 +250,37 @@ static void fill_scanline_buffer(struct scanvideo_scanline_buffer *buffer) {
   buffer->data[10] = (COMPOSABLE_RAW_RUN << 16u) | pixels[2];
   buffer->data[11] = (((w - 3) + 1 - 3) << 16u) | pixels[3]; // note we add one for the black pixel at the end
 }
-
-static int64_t timer_callback(alarm_id_t alarm_id, void *user_data) {
-  static int last_frame = 0;
-  struct scanvideo_scanline_buffer *buffer = scanvideo_begin_scanline_generation(false);
-  while (buffer) {
-    fill_scanline_buffer(buffer);
-    scanvideo_end_scanline_generation(buffer);
-
-    auto next_frame = scanvideo_frame_number(scanvideo_get_next_scanline_id());
-    if(next_frame != last_frame) {
-    //if(scanvideo_in_vblank() && !do_render) {
-      do_render = true;
-      last_frame = next_frame;
-      break;
-    }
-
-    buffer = scanvideo_begin_scanline_generation(false);
-  }
-
-
-  return 100;
-}
 #endif
 
 void core1_main() {
   multicore_lockout_victim_init();
 
+#ifdef DISPLAY_SCANVIDEO
+  int last_frame = 0;
+  //scanvideo_setup(&vga_mode_320x240_60); // not quite
+  scanvideo_setup(&vga_mode_160x120_60);
+  scanvideo_timing_enable(true);
+#endif
+
   while(true) {
+#ifdef DISPLAY_SCANVIDEO
+    struct scanvideo_scanline_buffer *buffer = scanvideo_begin_scanline_generation(true);
+    while (buffer) {
+      fill_scanline_buffer(buffer);
+      scanvideo_end_scanline_generation(buffer);
+
+      auto next_frame = scanvideo_frame_number(scanvideo_get_next_scanline_id());
+      if(next_frame != last_frame) {
+      //if(scanvideo_in_vblank() && !do_render) {
+        do_render = true;
+        last_frame = next_frame;
+        break;
+      }
+
+      buffer = scanvideo_begin_scanline_generation(false);
+    }
+#endif
+  sleep_us(1);
   }
 }
 
@@ -354,13 +357,6 @@ int main() {
   st7789::clear();
 
   have_vsync = st7789::vsync_callback(vsync_callback);
-#endif
-
-#ifdef DISPLAY_SCANVIDEO
-  //scanvideo_setup(&vga_mode_320x240_60); // not quite
-  scanvideo_setup(&vga_mode_160x120_60);
-  scanvideo_timing_enable(true);
-  add_alarm_in_us(100, timer_callback, nullptr, true);
 #endif
 
   init_input();
