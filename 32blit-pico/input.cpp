@@ -45,6 +45,40 @@ inline bool get_button(ButtonIO b) {
 }
 #endif
 
+#ifdef INPUT_USB_HID
+
+// from USB code
+extern uint32_t hid_gamepad_id;
+extern uint8_t hid_joystick[2];
+extern uint8_t hid_hat;
+extern uint32_t hid_buttons;
+struct GamepadMapping {
+  uint32_t id; // vid:pid
+  uint8_t a, b, x, y;
+  uint8_t menu, home, joystick;
+};
+
+static const GamepadMapping gamepad_mappings[]{
+  {0x15320705,  0,  1,  3,  4,  16, 15, 13}, // Razer Raiju Mobile
+  {0x20D6A711,  2,  1,  3,  0,  8,  12, 10}, // PowerA wired Switch pro controller
+  {0x00000000,  0,  1,  2,  3,  4,   5,  6}  // probably wrong fallback
+};
+
+// hat -> dpad
+const uint32_t dpad_map[]{
+  blit::Button::DPAD_UP,
+  blit::Button::DPAD_UP | blit::Button::DPAD_RIGHT,
+  blit::Button::DPAD_RIGHT,
+  blit::Button::DPAD_DOWN | blit::Button::DPAD_RIGHT,
+  blit::Button::DPAD_DOWN,
+  blit::Button::DPAD_DOWN | blit::Button::DPAD_LEFT,
+  blit::Button::DPAD_LEFT,
+  blit::Button::DPAD_UP | blit::Button::DPAD_LEFT,
+  0
+};
+
+#endif
+
 void init_input() {
 #ifdef INPUT_GPIO
   init_button(ButtonIO::UP);
@@ -81,5 +115,26 @@ void update_input() {
               | (get_button(ButtonIO::B)     ? uint32_t(Button::B) : 0)
               | (get_button(ButtonIO::X)     ? uint32_t(Button::X) : 0)
               | (get_button(ButtonIO::Y)     ? uint32_t(Button::Y) : 0);
+#endif
+
+#ifdef INPUT_USB_HID
+  if(!hid_gamepad_id)
+    return;
+
+  auto mapping = gamepad_mappings;
+  while(mapping->id && mapping->id != hid_gamepad_id)
+    mapping++;
+
+  api.buttons = dpad_map[hid_hat > 8 ? 8 : hid_hat]
+                    | (hid_buttons & (1 << mapping->a) ? Button::A : 0)
+                    | (hid_buttons & (1 << mapping->b) ? Button::B : 0)
+                    | (hid_buttons & (1 << mapping->x) ? Button::X : 0)
+                    | (hid_buttons & (1 << mapping->y) ? Button::Y : 0)
+                    | (hid_buttons & (1 << mapping->menu) ? Button::MENU : 0)
+                    | (hid_buttons & (1 << mapping->home) ? Button::HOME : 0)
+                    | (hid_buttons & (1 << mapping->joystick) ? Button::JOYSTICK : 0);
+
+  api.joystick.x = (float(hid_joystick[0]) - 0x80) / 0x80;
+  api.joystick.y = (float(hid_joystick[1]) - 0x80) / 0x80;
 #endif
 }
