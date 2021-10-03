@@ -5,6 +5,7 @@
 #include "hardware/structs/rosc.h"
 #include "hardware/vreg.h"
 #include "pico/binary_info.h"
+#include "pico/multicore.h"
 #include "pico/stdlib.h"
 
 #ifdef DISPLAY_SCANVIDEO
@@ -273,6 +274,13 @@ static int64_t timer_callback(alarm_id_t alarm_id, void *user_data) {
 }
 #endif
 
+void core1_main() {
+  multicore_lockout_victim_init();
+
+  while(true) {
+  }
+}
+
 int main() {
 #if OVERCLOCK_250
   // Apply a modest overvolt, default is 1.10v.
@@ -358,6 +366,8 @@ int main() {
   init_input();
   init_fs();
   init_usb();
+
+  multicore_launch_core1(core1_main);
 
   ::set_screen_mode(ScreenMode::lores);
 
