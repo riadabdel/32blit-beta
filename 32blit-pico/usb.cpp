@@ -135,7 +135,14 @@ static void send_handshake(bool is_reply = false) {
 // hid
 #if defined(USB_HOST) && defined(INPUT_USB_HID)
 
-static bool is_switch = false;
+static int hid_report_id = -1;
+static uint16_t buttons_offset = 0, num_buttons = 0;
+static uint16_t hat_offset = 0, stick_offset = 0;
+
+uint32_t hid_gamepad_id = 0;
+uint8_t hid_joystick[2]{0x80, 0x80};
+uint8_t hid_hat = 8;
+uint32_t hid_buttons = 0;
 
 void tuh_hid_mount_cb(uint8_t dev_addr, uint8_t instance, uint8_t const* desc_report, uint16_t desc_len) {
   uint16_t vid = 0, pid = 0;
@@ -143,9 +150,64 @@ void tuh_hid_mount_cb(uint8_t dev_addr, uint8_t instance, uint8_t const* desc_re
 
   printf("Mount %i %i, %04x:%04x\n", dev_addr, instance, vid, pid);
 
-  is_switch = (vid == 0x20d6 && pid == 0xa711); //PowerA wired pro controller
+  hid_gamepad_id = (vid << 16) | pid;
 
-  // TODO parse report descriptor
+  // basic and probably wrong report descriptor parsing
+  auto desc_end = desc_report + desc_len;
+  auto p = desc_report;
+
+  int report_id = -1;
+  int usage_page = -1;
+  int usage = -1;
+  int report_count = 0, report_size = 0;
+
+  int bit_offset = 0;
+
+  while(p != desc_end) {
+    uint8_t b = *p++;
+
+    int len = b & 0x3;
+    int type = (b >> 2) & 0x3;
+    int tag = b >> 4;
+
+    if(type == RI_TYPE_MAIN) {
+      // ignore constants
+      if(tag == RI_MAIN_INPUT) {
+        if(usage_page == HID_USAGE_PAGE_DESKTOP && usage == HID_USAGE_DESKTOP_X) {
+          stick_offset = bit_offset;
+          hid_report_id = report_id; // assume everything is in the same report as the stick... and that the first x/y is the stick
+        } else if(usage_page == HID_USAGE_PAGE_DESKTOP && usage == HID_USAGE_DESKTOP_HAT_SWITCH) {
+          hat_offset = bit_offset;
+        } else if(usage_page == HID_USAGE_PAGE_BUTTON && !(*p & HID_CONSTANT)) {
+          // assume this is "the buttons"
+          buttons_offset = bit_offset;
+          num_buttons = report_count;
+        }
+
+        usage = -1;
+        bit_offset += report_size * report_count;
+      } else if(tag == RI_MAIN_COLLECTION) {
+        usage = -1; // check that this is gamepad?
+      }
+    } else if(type == RI_TYPE_GLOBAL) {
+      if(tag == RI_GLOBAL_USAGE_PAGE)
+        usage_page = *p;
+      else if(tag == RI_GLOBAL_REPORT_SIZE)
+        report_size = *p;
+      else if(tag == RI_GLOBAL_REPORT_ID) {
+        report_id = *p;
+        bit_offset = 0;
+      } else if(tag == RI_GLOBAL_REPORT_COUNT)
+        report_count = *p;
+
+
+    } else if(type == RI_TYPE_LOCAL) {
+      if(tag == RI_LOCAL_USAGE && usage == -1)
+        usage = *p; // FIXME: multiple usages are a thing
+    }
+
+    p += len;
+  }
 
   if(!tuh_hid_receive_report(dev_addr, instance)) {
     printf("Cound not request report!\n");
@@ -154,84 +216,32 @@ void tuh_hid_mount_cb(uint8_t dev_addr, uint8_t instance, uint8_t const* desc_re
 
 // should this be here or in input.cpp?
 void tuh_hid_report_received_cb(uint8_t dev_addr, uint8_t instance, uint8_t const* report, uint16_t len) {
-  auto protocol = tuh_hid_interface_protocol(dev_addr, instance);
 
-  // hat -> dpad
-  const uint32_t dpad_map[]{
-    blit::Button::DPAD_UP,
-    blit::Button::DPAD_UP | blit::Button::DPAD_RIGHT,
-    blit::Button::DPAD_RIGHT,
-    blit::Button::DPAD_DOWN | blit::Button::DPAD_RIGHT,
-    blit::Button::DPAD_DOWN,
-    blit::Button::DPAD_DOWN | blit::Button::DPAD_LEFT,
-    blit::Button::DPAD_LEFT,
-    blit::Button::DPAD_UP | blit::Button::DPAD_LEFT,
-    0
-  };
+  auto report_data = hid_report_id == -1 ? report : report + 1;
 
-  uint8_t joystick_x = 0x80, joystick_y = 0x80;
+  // check report id if we have one
+  if(hid_report_id == -1 || report[0] == hid_report_id) {
+    // I hope these are reasonably aligned
+    hid_hat = (report_data[hat_offset / 8] >> (hat_offset % 8)) & 0xF;
 
-  uint32_t buttons = 0;
+    hid_joystick[0] = report_data[stick_offset / 8];
+    hid_joystick[1] = report_data[stick_offset / 8 + 1];
 
-  if(is_switch) {
-    // Y,  B,  A,  X,  L,  R, ZL, ZR
-    // -,  +, LS, RS, Ho, SS
-    joystick_x = report[3];
-    joystick_y = report[4];
+    // get up to 32 buttons
+    hid_buttons = 0;
+    int bits = buttons_offset % 8;
+    int i = 0;
+    auto p = report_data + buttons_offset / 8;
 
-    int dpad = std::min(8, report[2] & 0xF);
-    buttons = dpad_map[dpad];
-
-    const uint8_t button_map[]{
-       2,  4, // A
-       1,  5, // B
-       3,  6, // X
-       0,  7, // Y
-       8,  8, // MENU (mapped to -)
-      12,  9, // HOME
-      10, 10 // JOYSTICK
-    };
-
-    for(int i = 0; i < sizeof(button_map); i += 2) {
-      int byte = button_map[i] >>  3;
-      int bit = button_map[i] & 7;
-      if(report[byte] & (1 << bit))
-        buttons |= (1 << button_map[i + 1]);
+    // partial byte
+    if(bits) {
+      hid_buttons |= (*p++) >> bits;
+      i += 8 - bits;
     }
 
-  } else if(report[0] == 1) {
-    // layout roughly matches the PS4 report from the controller example, but the mapping is for my Razer Raiju Mobile
-    joystick_x = report[1];
-    joystick_y = report[2];
-    // 3 = z, 4 =rotation
-
-    // DPAD         ,  A,  B,  ?,  X
-    // Y,  ?, L1, R1, L2, R2, Se, St
-    // ?, LS, RS, Ho, Ba
-
-    const uint8_t button_map[]{
-      44,  4, // A
-      45,  5, // B
-      47,  6, // X
-      48,  7, // Y
-      60,  8, // MENU (mapped to Back)
-      59,  9, // HOME
-      57, 10 // JOYSTICK
-    };
-
-    buttons = dpad_map[report[5] & 0xF];
-
-    for(int i = 0; i < sizeof(button_map); i += 2) {
-      int byte = button_map[i] >>  3;
-      int bit = button_map[i] & 7;
-      if(report[byte] & (1 << bit))
-        buttons |= (1 << button_map[i + 1]);
-    }
+    for(; i < num_buttons; i+= 8)
+      hid_buttons |= (*p++) << i;
   }
-
-  blit::api.buttons = buttons;
-  blit::api.joystick.x = (float(joystick_x) - 0x80) / 0x80;
-  blit::api.joystick.y = (float(joystick_y) - 0x80) / 0x80;
 
   // next report
   tuh_hid_receive_report(dev_addr, instance);
