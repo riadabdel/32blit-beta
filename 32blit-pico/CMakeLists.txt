@@ -44,11 +44,14 @@ target_compile_options(BlitHalPico INTERFACE
 
 if(${PICO_BOARD} STREQUAL "vgaboard")
     message("Using VGA board...")
-    target_link_libraries(BlitHalPico INTERFACE pico_scanvideo_dpi pico_audio_i2s)
+    target_link_libraries(BlitHalPico INTERFACE pico_scanvideo_dpi pico_audio_i2s tinyusb_host)
     target_compile_definitions(BlitHalPico INTERFACE
         PICO_SCANVIDEO_PLANE1_VARIABLE_FRAGMENT_DMA=1
         AUDIO_I2S
         DISPLAY_SCANVIDEO
+        USB_HOST
+        INPUT_USB_HID
+        STORAGE_SD
     )
 elseif(${PICO_BOARD} STREQUAL "pimoroni_picosystem")
     message("Using picosystem...")
