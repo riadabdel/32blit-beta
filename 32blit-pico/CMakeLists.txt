@@ -102,6 +102,34 @@ elseif(DEFINED PICO_ADDON)
             LED_G_PIN=7
             LED_B_PIN=8
         )
+    elseif(${PICO_ADDON} STREQUAL "pico_dv")
+        # grab a copy of PicoDVI
+        include(FetchContent)
+
+        FetchContent_Populate(picodvi
+            GIT_REPOSITORY https://github.com/Wren6991/PicoDVI
+            GIT_TAG 62a41787f881f3ad8038fb7d45335c8f457bc4a2
+        )
+        add_subdirectory(${picodvi_SOURCE_DIR}/software/libdvi ${picodvi_BINARY_DIR} EXCLUDE_FROM_ALL)
+
+        target_link_libraries(BlitHalPico INTERFACE libdvi pico_audio_i2s tinyusb_host)
+        target_include_directories(BlitHalPico INTERFACE ${picodvi_SOURCE_DIR}/software/include) # common_dvi_pin_configs.h
+
+        target_compile_definitions(BlitHalPico INTERFACE
+            PICO_AUDIO_I2S_PIO=1
+            PICO_AUDIO_I2S_DATA_PIN=26
+            PICO_AUDIO_I2S_CLOCK_PIN_BASE=27
+            AUDIO_I2S
+            DISPLAY_PICODVI
+            DVI_DEFAULT_SERIAL_CONFIG=pimoroni_demo_hdmi_cfg
+            DVI_16BPP_RED_MSB=4
+            DVI_16BPP_RED_LSB=0
+            DVI_16BPP_BLUE_MSB=15
+            DVI_16BPP_BLUE_LSB=11
+            USB_HOST
+            INPUT_USB_HID
+            STORAGE_SD
+        )
     else()
         message(FATAL_ERROR "Unknown add-on ${PICO_ADDON}!")
     endif()

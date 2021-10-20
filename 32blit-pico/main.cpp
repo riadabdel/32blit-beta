@@ -12,6 +12,16 @@
 #include "pico/scanvideo.h"
 #include "pico/scanvideo/composable_scanline.h"
 #endif
+#ifdef DISPLAY_PICODVI
+#include "hardware/irq.h"
+#include "hardware/vreg.h"
+
+extern "C" {
+#include "dvi.h"
+#include "tmds_encode.h"
+#include "common_dvi_pin_configs.h"
+}
+#endif
 
 #include "audio.hpp"
 #include "config.h"
@@ -46,6 +56,14 @@ static const blit::SurfaceTemplate hires_screen{screen_fb, Size(ST7789_WIDTH, ST
 #elif defined(DISPLAY_SCANVIDEO)
 uint8_t screen_fb[160 * 120 * 4];
 static const blit::SurfaceTemplate lores_screen{screen_fb, Size(160, 120), blit::PixelFormat::RGB565, nullptr};
+#elif defined(DISPLAY_PICODVI)
+#define VREG_VSEL VREG_VOLTAGE_1_20
+#define DVI_TIMING dvi_timing_640x480p_60hz
+
+static dvi_inst dvi0;
+
+uint8_t screen_fb[160 * 120 * 4];
+static const  blit::SurfaceTemplate lores_screen{screen_fb, Size(160, 120), PixelFormat::RGB565, nullptr};
 #endif
 
 static blit::AudioChannel channels[CHANNEL_COUNT];
@@ -252,6 +270,44 @@ static void fill_scanline_buffer(struct scanvideo_scanline_buffer *buffer) {
 }
 #endif
 
+#ifdef DISPLAY_PICODVI
+static void __not_in_flash_func(dvi_loop)() {
+  auto inst = &dvi0;
+
+  uint32_t scanbuf[160];
+  int y = 0;
+
+  while(true) {
+
+    // pixel double x2
+    if(!(y & 1)) {
+      auto out = scanbuf;
+      auto in = reinterpret_cast<uint16_t *>(screen_fb) + buf_index * (160 * 120) + (y / 2) * 160;
+      for(int i = 0; i < 160; i++) {
+        auto pixel = *in++;
+        *out++ = pixel | pixel << 16;
+      }
+    }
+
+    //copy/paste of dvi_prepare_scanline_16bpp
+    uint32_t *tmdsbuf;
+    queue_remove_blocking_u32(&inst->q_tmds_free, &tmdsbuf);
+    uint pixwidth = inst->timing->h_active_pixels;
+    uint words_per_channel = pixwidth / DVI_SYMBOLS_PER_WORD;
+    tmds_encode_data_channel_16bpp(scanbuf, tmdsbuf + 0 * words_per_channel, pixwidth / 2, DVI_16BPP_BLUE_MSB,  DVI_16BPP_BLUE_LSB );
+    tmds_encode_data_channel_16bpp(scanbuf, tmdsbuf + 1 * words_per_channel, pixwidth / 2, DVI_16BPP_GREEN_MSB, DVI_16BPP_GREEN_LSB);
+    tmds_encode_data_channel_16bpp(scanbuf, tmdsbuf + 2 * words_per_channel, pixwidth / 2, DVI_16BPP_RED_MSB,   DVI_16BPP_RED_LSB  );
+    queue_add_blocking_u32(&inst->q_tmds_valid, &tmdsbuf);
+
+    y++;
+    if(y == 240) {
+      y = 0;
+      do_render = true;
+    }
+  }
+}
+#endif
+
 void core1_main() {
   multicore_lockout_victim_init();
 
@@ -260,6 +316,12 @@ void core1_main() {
   //scanvideo_setup(&vga_mode_320x240_60); // not quite
   scanvideo_setup(&vga_mode_160x120_60);
   scanvideo_timing_enable(true);
+#endif
+
+#ifdef DISPLAY_PICODVI
+  dvi_register_irqs_this_core(&dvi0, DMA_IRQ_0);
+  dvi_start(&dvi0);
+  dvi_loop();
 #endif
 
   while(true) {
@@ -285,7 +347,12 @@ void core1_main() {
 }
 
 int main() {
-#if OVERCLOCK_250
+
+#ifdef DISPLAY_PICODVI
+	vreg_set_voltage(VREG_VSEL);
+	sleep_ms(10);
+	set_sys_clock_khz(DVI_TIMING.bit_clk_khz, true);
+#elif OVERCLOCK_250
   // Apply a modest overvolt, default is 1.10v.
   // this is required for a stable 250MHz on some RP2040s
   vreg_set_voltage(VREG_VOLTAGE_1_20);
@@ -359,6 +426,12 @@ int main() {
   have_vsync = st7789::vsync_callback(vsync_callback);
 #endif
 
+#ifdef DISPLAY_PICODVI
+	dvi0.timing = &DVI_TIMING;
+	dvi0.ser_cfg = DVI_DEFAULT_SERIAL_CONFIG;
+	dvi_init(&dvi0, next_striped_spin_lock_num(), next_striped_spin_lock_num());
+#endif
+
   init_input();
   init_fs();
   init_usb();
@@ -406,7 +479,7 @@ int main() {
       do_render = false;
     }
 
-#elif defined(DISPLAY_SCANVIDEO)
+#elif defined(DISPLAY_SCANVIDEO) || defined(DISPLAY_PICODVI)
     if(do_render) {
       screen.data = screen_fb + (buf_index ^ 1) * (160 * 120 * 2); // only works because there's no "firmware" here
       ::render(now);
