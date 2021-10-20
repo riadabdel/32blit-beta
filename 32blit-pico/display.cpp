@@ -9,6 +9,17 @@
 #include "pico/time.h"
 #include "pico/scanvideo.h"
 #include "pico/scanvideo/composable_scanline.h"
+#elif defined(DISPLAY_PICODVI)
+#include "hardware/irq.h"
+#include "pico/stdlib.h"
+
+extern "C" {
+#include "dvi.h"
+#include "tmds_encode.h"
+#include "common_dvi_pin_configs.h"
+}
+
+#define DVI_TIMING dvi_timing_640x480p_60hz
 #endif
 
 using namespace blit;
@@ -79,6 +90,46 @@ static void fill_scanline_buffer(struct scanvideo_scanline_buffer *buffer) {
 }
 #endif
 
+#ifdef DISPLAY_PICODVI
+static dvi_inst dvi0;
+
+static void __not_in_flash_func(dvi_loop)() {
+  auto inst = &dvi0;
+
+  uint32_t scanbuf[160];
+  int y = 0;
+
+  while(true) {
+
+    // pixel double x2
+    if(!(y & 1)) {
+      auto out = scanbuf;
+      auto in = screen_fb + buf_index * (160 * 120) + (y / 2) * 160;
+      for(int i = 0; i < 160; i++) {
+        auto pixel = *in++;
+        *out++ = pixel | pixel << 16;
+      }
+    }
+
+    //copy/paste of dvi_prepare_scanline_16bpp
+    uint32_t *tmdsbuf;
+    queue_remove_blocking_u32(&inst->q_tmds_free, &tmdsbuf);
+    uint pixwidth = inst->timing->h_active_pixels;
+    uint words_per_channel = pixwidth / DVI_SYMBOLS_PER_WORD;
+    tmds_encode_data_channel_16bpp(scanbuf, tmdsbuf + 0 * words_per_channel, pixwidth / 2, DVI_16BPP_BLUE_MSB,  DVI_16BPP_BLUE_LSB );
+    tmds_encode_data_channel_16bpp(scanbuf, tmdsbuf + 1 * words_per_channel, pixwidth / 2, DVI_16BPP_GREEN_MSB, DVI_16BPP_GREEN_LSB);
+    tmds_encode_data_channel_16bpp(scanbuf, tmdsbuf + 2 * words_per_channel, pixwidth / 2, DVI_16BPP_RED_MSB,   DVI_16BPP_RED_LSB  );
+    queue_add_blocking_u32(&inst->q_tmds_valid, &tmdsbuf);
+
+    y++;
+    if(y == 240) {
+      y = 0;
+      do_render = true;
+    }
+  }
+}
+#endif
+
 void init_display() {
 #ifdef DISPLAY_ST7789
   st7789::frame_buffer = screen_fb;
@@ -86,6 +137,14 @@ void init_display() {
   st7789::clear();
 
   have_vsync = st7789::vsync_callback(vsync_callback);
+
+#elif defined(DISPLAY_PICODVI)
+  // assuming the default overclock hasn't been disabled, overvolt should already be set
+  set_sys_clock_khz(DVI_TIMING.bit_clk_khz, true);
+
+  dvi0.timing = &DVI_TIMING;
+	dvi0.ser_cfg = DVI_DEFAULT_SERIAL_CONFIG;
+	dvi_init(&dvi0, next_striped_spin_lock_num(), next_striped_spin_lock_num());
 #endif
 }
 
@@ -117,7 +176,7 @@ void update_display(uint32_t time) {
     do_render = false;
   }
 
-#elif defined(DISPLAY_SCANVIDEO)
+#elif defined(DISPLAY_SCANVIDEO) || defined(DISPLAY_PICODVI)
   if(do_render) {
     if(cur_screen_mode == ScreenMode::lores)
       screen.data = (uint8_t *)screen_fb + (buf_index ^ 1) * lores_page_size; // only works because there's no "firmware" here
@@ -141,6 +200,13 @@ void init_display_core1() {
 #endif
 
   scanvideo_timing_enable(true);
+
+#elif defined(DISPLAY_PICODVI)
+  dvi_register_irqs_this_core(&dvi0, DMA_IRQ_0);
+  dvi_start(&dvi0);
+
+  // TODO: this assumes nothing else wants to use core 1 (it doesn't return)
+  dvi_loop();
 #endif
 }
 
