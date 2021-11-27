@@ -61,7 +61,11 @@ void init_audio() {
   struct audio_i2s_config config = {
     .data_pin = PICO_AUDIO_I2S_DATA_PIN,
     .clock_pin_base = PICO_AUDIO_I2S_CLOCK_PIN_BASE,
+#ifdef DISPLAY_PICODVI
+    .dma_channel = 6,
+#else
     .dma_channel = 1,
+#endif
     .pio_sm = 1,
   };
 
