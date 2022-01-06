@@ -2,7 +2,6 @@
 
 #include <cstdint>
 
-#include "../32blit.hpp"
 #include "../types/size.hpp"
 #include "../types/point.hpp"
 #include "../types/mat3.hpp"
