@@ -8,3 +8,4 @@ assets.cpp:
   assets/flight.tmx:
     name: map_data
     empty_tile: 17
+    output_struct: true

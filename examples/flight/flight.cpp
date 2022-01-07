@@ -25,7 +25,7 @@ uint8_t __water[64 * 64];
 Surface *sprites;
 Surface *water;
 
-TileMap map(const_cast<uint8_t *>(map_data), const_cast<uint8_t *>(map_data + 128 * 128), Size(128, 128), nullptr);
+TileMap *map;
 
 struct object {
   Vec2 pos;
@@ -70,8 +70,8 @@ void init() {
   // Load our map sprites into the __sprites space we've reserved
   sprites = Surface::load(packed_data, __sprites, sizeof(__sprites));
   sprites->generate_mipmaps(3);
-  map.sprites = sprites;
-  map.empty_tile_id = 17;
+
+  map = TileMap::load_tmx(map_data, sprites);
 
   water = Surface::load(water_packed_data, __water, sizeof(__water));
 
@@ -79,7 +79,7 @@ void init() {
   Point p;
   for (p.y = 0; p.y < 128; p.y++) {
     for (p.x = 0; p.x < 128; p.x++) {
-      int16_t tid = map.tile_at(p);
+      int16_t tid = map->tile_at(p);
       if (tid == 26) {
         objects.emplace_back(
           Vec2(p.x * 8 + 4, p.y * 8 + 4),
@@ -158,7 +158,7 @@ void render(uint32_t time_ms) {
 
   screen.blit(water, Rect(0, 0, 64, 64), Point(0, 50));
 
-  mode7(&screen, &map, fov, angle, pos, near, far, vp);
+  mode7(&screen, map, fov, angle, pos, near, far, vp);
 
   std::vector<DrawObject> drawables = drawObjects(objects);
   std::sort(drawables.begin(), drawables.end()); // sort them so they draw in order
@@ -200,9 +200,9 @@ void render(uint32_t time_ms) {
     for (mmp.x = 0; mmp.x < 64; mmp.x++) {
       Point tp = mmp * 2.0f;
 
-      int16_t tile_id = map.tile_at(tp);
+      int16_t tile_id = map->tile_at(tp);
 
-      if (tile_id != map.empty_tile_id) {
+      if (tile_id != map->empty_tile_id) {
         Point sp(
           (tile_id & 0b1111),
           (tile_id / 16)
