@@ -180,7 +180,13 @@ function(blit_executable_int_flash NAME SOURCES)
 		DESTINATION bin
 	)
 
-	set_target_properties(${NAME} PROPERTIES LINK_FLAGS "-specs=nano.specs -T ${MCU_LINKER_SCRIPT} ${MCU_LINKER_FLAGS_INT}")
+	# linker script is already specified for reasons
+	if(CMAKE_C_COMPILER_ID STREQUAL "Clang")
+		set_target_properties(${NAME} PROPERTIES LINK_FLAGS "${MCU_LINKER_FLAGS_INT}")
+	else()
+		set_target_properties(${NAME} PROPERTIES LINK_FLAGS "-specs=nano.specs -T ${MCU_LINKER_SCRIPT} ${MCU_LINKER_FLAGS_INT}")
+	endif()
+
 	set_target_properties(${NAME} PROPERTIES LINK_DEPENDS ${MCU_LINKER_SCRIPT} SUFFIX ".elf")
 	set_target_properties(${NAME} PROPERTIES POSITION_INDEPENDENT_CODE OFF)
 
