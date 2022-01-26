@@ -308,7 +308,10 @@ static void __not_in_flash_func(dvi_loop)() {
 }
 #endif
 
+bool core1_started = false;
+
 void core1_main() {
+  core1_started = true;
   multicore_lockout_victim_init();
 
 #ifdef DISPLAY_SCANVIDEO
