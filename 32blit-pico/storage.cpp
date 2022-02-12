@@ -47,6 +47,36 @@ int32_t storage_read(uint32_t sector, uint32_t offset, void *buffer, uint32_t si
   return size_bytes;
 }
 
+void storage_erase(uint32_t sector) {
+  auto status = save_and_disable_interrupts();
+
+  if(core1_started)
+    multicore_lockout_start_blocking(); // pause core1
+
+  flash_range_erase(storage_offset + sector * FLASH_SECTOR_SIZE, FLASH_SECTOR_SIZE);
+
+  if(core1_started)
+    multicore_lockout_end_blocking(); // resume core1
+
+  restore_interrupts(status);
+}
+
+int32_t storage_program(uint32_t sector, uint32_t offset, const uint8_t *buffer, uint32_t size_bytes) {
+  auto status = save_and_disable_interrupts();
+
+  if(core1_started)
+    multicore_lockout_start_blocking(); // pause core1
+
+  flash_range_program(storage_offset + sector * FLASH_SECTOR_SIZE + offset, buffer, size_bytes);
+
+  if(core1_started)
+    multicore_lockout_end_blocking(); // resume core1
+
+  restore_interrupts(status);
+
+  return size_bytes;
+}
+
 int32_t storage_write(uint32_t sector, uint32_t offset, const uint8_t *buffer, uint32_t size_bytes) {
   auto status = save_and_disable_interrupts();
 
@@ -498,6 +528,13 @@ int32_t storage_read(uint32_t sector, uint32_t offset, void *buffer, uint32_t si
   }
 
   return size_bytes;
+}
+
+void storage_erase(uint32_t sector) {
+}
+
+int32_t storage_program(uint32_t sector, uint32_t offset, const uint8_t *buffer, uint32_t size_bytes) {
+  return storage_write(sector, offset, buffer, size_bytes);
 }
 
 int32_t storage_write(uint32_t sector, uint32_t offset, const uint8_t *buffer, uint32_t size_bytes) {
