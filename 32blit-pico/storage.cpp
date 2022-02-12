@@ -18,7 +18,11 @@
 #include "hardware/sync.h"
 #include "pico/multicore.h"
 
+#if defined(PIMORONI_PICOSYSTEM) && defined(FS_LITTLEFS)
+static const uint32_t storage_size = 7 * 1024 * 1024; // match the micropython port
+#else
 static const uint32_t storage_size = PICO_FLASH_SIZE_BYTES / 4;
+#endif
 static const uint32_t storage_offset = PICO_FLASH_SIZE_BYTES - storage_size;
 
 extern bool core1_started;
