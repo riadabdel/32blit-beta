@@ -8,6 +8,7 @@
 #include "engine/engine.hpp"
 
 #include "config.h"
+#include "binary_info.hpp"
 
 #ifndef STORAGE_SD
 #define STORAGE_FLASH
