@@ -9,12 +9,8 @@ set(32BLIT_PICO 1 PARENT_SCOPE)
 
 add_library(BlitHalPico INTERFACE)
 target_sources(BlitHalPico INTERFACE
-    ${CMAKE_CURRENT_LIST_DIR}/../3rd-party/fatfs/ff.c
-    ${CMAKE_CURRENT_LIST_DIR}/../3rd-party/fatfs/ffunicode.c
-
     ${CMAKE_CURRENT_LIST_DIR}/audio.cpp
     ${CMAKE_CURRENT_LIST_DIR}/file.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/file_fatfs.cpp
     ${CMAKE_CURRENT_LIST_DIR}/input.cpp
     ${CMAKE_CURRENT_LIST_DIR}/led.cpp
     ${CMAKE_CURRENT_LIST_DIR}/main.cpp
@@ -31,12 +27,15 @@ target_link_libraries(BlitHalPico INTERFACE hardware_dma hardware_pio hardware_p
 target_include_directories(BlitHalPico INTERFACE
     ${CMAKE_CURRENT_LIST_DIR} # for tusb_config
     ${CMAKE_CURRENT_LIST_DIR}/../3rd-party/fatfs
+    ${CMAKE_CURRENT_LIST_DIR}/../3rd-party/littlefs
 )
 
 target_compile_definitions(BlitHalPico INTERFACE
     PICO_AUDIO_I2S_MONO_INPUT=1
     PICO_AUDIO_DMA_IRQ=1
 )
+
+set(USE_LITTLEFS FALSE)
 
 if(${PICO_BOARD} STREQUAL "vgaboard")
     message("Using VGA board...")
@@ -147,6 +146,26 @@ else()
     )
 endif()
 
+# add filesystem-specific sources
+if(USE_LITTLEFS)
+    target_sources(BlitHalPico INTERFACE
+        ${CMAKE_CURRENT_LIST_DIR}/../3rd-party/littlefs/lfs.c
+        ${CMAKE_CURRENT_LIST_DIR}/../3rd-party/littlefs/lfs_util.c
+
+        ${CMAKE_CURRENT_LIST_DIR}/file_littlefs.cpp
+    )
+
+    target_compile_definitions(BlitHalPico INTERFACE FS_LITTLEFS)
+else()
+    target_sources(BlitHalPico INTERFACE
+        ${CMAKE_CURRENT_LIST_DIR}/../3rd-party/fatfs/ff.c
+        ${CMAKE_CURRENT_LIST_DIR}/../3rd-party/fatfs/ffunicode.c
+
+        ${CMAKE_CURRENT_LIST_DIR}/file_fatfs.cpp
+    )
+
+    target_compile_definitions(BlitHalPico INTERFACE FS_FATFS)
+endif()
 
 function(blit_executable_common NAME)
     target_link_libraries(${NAME} BlitEngine)
