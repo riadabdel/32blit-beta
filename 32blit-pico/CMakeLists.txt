@@ -14,6 +14,7 @@ target_sources(BlitHalPico INTERFACE
 
     ${CMAKE_CURRENT_LIST_DIR}/audio.cpp
     ${CMAKE_CURRENT_LIST_DIR}/file.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/file_fatfs.cpp
     ${CMAKE_CURRENT_LIST_DIR}/input.cpp
     ${CMAKE_CURRENT_LIST_DIR}/led.cpp
     ${CMAKE_CURRENT_LIST_DIR}/main.cpp
