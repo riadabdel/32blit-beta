@@ -1,3 +1,4 @@
+#include <csetjmp>
 #include <cstring>
 
 #include "32blit.h"
@@ -103,11 +104,15 @@ void blit_debug(const char *message) {
   }
 }
 
+static std::jmp_buf exit_jump_buf;
+
 void blit_exit(bool is_error) {
   if(is_error)
     blit_reset_with_error(); // likely an abort
-  else
+  else {
     blit_switch_execution(0, false); // switch back to firmware
+    std::longjmp(exit_jump_buf, 1); // can't let exit return, so jump out of update
+  }
 }
 
 void enable_us_timer()
@@ -209,7 +214,11 @@ void blit_tick() {
     disk.is_initialized[0] = fs_mounted; // this gets set without checking if the init succeeded, un-set it if the init failed (or the card was removed)
   }
 
-  auto time_to_next_tick = do_tick(blit::now());
+  int time_to_next_tick = 0;
+
+  // setjmp for blit_exit to return here
+  if(!setjmp(exit_jump_buf))
+    time_to_next_tick = do_tick(blit::now());
 
   // handle delayed switch
   if(game_switch_requested) {
