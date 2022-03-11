@@ -116,7 +116,7 @@ jobs:
       run: ci/install_sdl_mingw.sh
 
     - name: Create Build Environment
-      run: ls -l && cmake -E make_directory ${{runner.workspace}}/build
+      run: pwd && ls -l && cmake -E make_directory ${{runner.workspace}}/build && ls -l
 
     - name: Set Tag Variable
       if: github.event_name == 'release'
