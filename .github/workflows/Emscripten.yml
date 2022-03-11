@@ -11,13 +11,11 @@ env:
   BUILD_TYPE: Release
   EM_VERSION: 2.0.18
   EM_CACHE_FOLDER: 'emsdk-cache'
+  CCACHE_DIR: ${{github.workspace}}/.ccache
 
 jobs:
   build:
     runs-on: ubuntu-20.04
-
-    env:
-      CCACHE_DIR: ${{github.workspace}}/.ccache
 
     steps:
     - uses: actions/checkout@v2
@@ -50,7 +48,10 @@ jobs:
         actions-cache-folder: ${{env.EM_CACHE_FOLDER}}
         
     - name: Setup CCache
-      run: emsdk install ccache-git-emscripten-64bit && emsdk activate ccache-git-emscripten-64bit
+      run: |
+        emsdk install ccache-git-emscripten-64bit
+        emsdk activate ccache-git-emscripten-64bit
+        echo "${EMSDK}/ccache/git-emscripten_64bit/bin" >> $GITHUB_PATH
 
     - name: Create Build Environment
       run: cmake -E make_directory ${{runner.workspace}}/build
