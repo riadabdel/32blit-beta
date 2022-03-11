@@ -86,7 +86,7 @@ jobs:
     - name: Cache
       uses: actions/cache@v2
       with:
-        path: ${CCACHE_DIR}
+        path: ${{env.CCACHE_DIR}}
         key: ccache-${{matrix.cache-key}}-${{github.ref}}-${{github.sha}}
         restore-keys: |
           ccache-${{matrix.cache-key}}-${{github.ref}}
