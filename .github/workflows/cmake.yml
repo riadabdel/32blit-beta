@@ -29,7 +29,7 @@ jobs:
             cache-key: stm32
             release-suffix: STM32
             cmake-args: -DCMAKE_TOOLCHAIN_FILE=$GITHUB_WORKSPACE/32blit.toolchain -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
-            apt-packages: ccache #gcc-arm-none-eabi libnewlib-arm-none-eabi libstdc++-arm-none-eabi-newlib python3-setuptools
+            #apt-packages: ccache gcc-arm-none-eabi libnewlib-arm-none-eabi libstdc++-arm-none-eabi-newlib python3-setuptools
 
           - os: ubuntu-20.04
             pico-sdk: true
@@ -116,7 +116,7 @@ jobs:
       run: ci/install_sdl_mingw.sh
 
     - name: Create Build Environment
-      run: echo $GITHUB_WORKSPACE && pwd && ls -l && cmake -E make_directory $GITHUB_WORKSPACE/build && ls -l
+      run: cmake -E make_directory $GITHUB_WORKSPACE/build
 
     - name: Set Tag Variable
       if: github.event_name == 'release'
