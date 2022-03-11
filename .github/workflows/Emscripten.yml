@@ -28,8 +28,8 @@ jobs:
         path: ${{env.CCACHE_DIR}}
         key: ccache-em-${{github.ref}}-${{github.sha}}
         restore-keys: |
-          ccache-${{matrix.cache-key}}-${{github.ref}}
-          ccache-${{matrix.cache-key}}-
+          ccache-em-${{github.ref}}
+          ccache-em-
 
     - name: Install deps
       run: |
@@ -72,8 +72,10 @@ jobs:
       working-directory: ${{runner.workspace}}/build
       shell: bash
       run: |
+        ccache --zero-stats
         embuilder.py build sdl2 sdl2-image-jpg sdl2-net
         cmake --build . --config $BUILD_TYPE -j 2
+        ccache --show-stats
 
     # build the docs
     - name: Build Docs
