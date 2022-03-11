@@ -61,7 +61,7 @@ jobs:
 
     env:
       RELEASE_FILE: ${{github.event.repository.name}}-${{github.event.release.tag_name}}-${{matrix.release-suffix}}
-      CCACHE_DIR: ${GITHUB_WORKSPACE}/.ccache
+      CCACHE_DIR: ${{github.workspace}}/.ccache
 
     steps:
     - name: Checkout 32Blit SDK
