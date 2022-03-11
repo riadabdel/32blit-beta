@@ -61,6 +61,7 @@ jobs:
 
     env:
       RELEASE_FILE: ${{github.event.repository.name}}-${{github.event.release.tag_name}}-${{matrix.release-suffix}}
+      CCACHE_DIR: ${GITHUB_WORKSPACE}/.ccache
 
     steps:
     - name: Checkout 32Blit SDK
@@ -85,7 +86,7 @@ jobs:
     - name: Cache
       uses: actions/cache@v2
       with:
-        path: /home/runner/.ccache
+        path: ${CCACHE_DIR}
         key: ccache-${{matrix.cache-key}}-${{github.ref}}-${{github.sha}}
         restore-keys: |
           ccache-${{matrix.cache-key}}-${{github.ref}}
