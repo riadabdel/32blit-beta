@@ -3,7 +3,11 @@ on:
   push:
     branches:
       - '**' # only run on branches
+    paths-ignore:
+      - 'docs/**'
   pull_request:
+    paths-ignore:
+      - 'docs/**'
 
 concurrency:
   group: ${{github.workflow}}-${{github.ref}}

@@ -4,7 +4,11 @@ on:
   push:
     branches:
       - '**' # only run on branches
+    paths-ignore:
+      - 'docs/**'
   pull_request:
+    paths-ignore:
+      - 'docs/**'
   release:
     types: [published]
 
