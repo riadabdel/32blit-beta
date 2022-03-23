@@ -50,7 +50,10 @@ static void __not_in_flash_func(dvi_loop)() {
     y++;
     if(y == 240) {
       y = 0;
-      do_render = true;
+      if(!do_render) {
+        do_render = true;
+        buf_index ^= 1;
+      }
     }
   }
 }
