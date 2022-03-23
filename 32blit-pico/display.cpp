@@ -124,7 +124,10 @@ static void __not_in_flash_func(dvi_loop)() {
     y++;
     if(y == 240) {
       y = 0;
-      do_render = true;
+      if(!do_render) {
+        do_render = true;
+        buf_index ^= 1;
+      }
     }
   }
 }
@@ -180,7 +183,6 @@ void update_display(uint32_t time) {
   if(do_render) {
     screen.data = (uint8_t *)screen_fb + (buf_index ^ 1) * lores_page_size; // only works because there's no "firmware" here
     ::render(time);
-    buf_index ^= 1;
     do_render = false;
   }
 #endif
@@ -209,9 +211,10 @@ void update_display_core1() {
     scanvideo_end_scanline_generation(buffer);
 
     auto next_frame = scanvideo_frame_number(scanvideo_get_next_scanline_id());
-    if(next_frame != last_frame) {
+    if(next_frame != last_frame && !do_render) {
     //if(scanvideo_in_vblank() && !do_render) {
       do_render = true;
+      buf_index ^= 1;
       last_frame = next_frame;
       break;
     }
