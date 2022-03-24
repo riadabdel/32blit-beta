@@ -62,7 +62,7 @@ static void vsync_callback(uint gpio, uint32_t events) {
 #endif
 
 #ifdef DISPLAY_SCANVIDEO
-static int last_frame = 0;
+static bool do_render_soon = false; // slightly delayed to handle the queue
 
 static void fill_scanline_buffer(struct scanvideo_scanline_buffer *buffer) {
   static uint32_t postamble[] = {
@@ -210,13 +210,18 @@ void update_display_core1() {
     fill_scanline_buffer(buffer);
     scanvideo_end_scanline_generation(buffer);
 
-    auto next_frame = scanvideo_frame_number(scanvideo_get_next_scanline_id());
-    if(next_frame != last_frame && !do_render) {
-    //if(scanvideo_in_vblank() && !do_render) {
-      do_render = true;
+    const int height = DISPLAY_HEIGHT / 2;
+
+    // swap buffers at the end of the frame, but don't start a render yet
+    // (the last few lines of the old buffer are still in the queue)
+    if(scanvideo_scanline_number(buffer->scanline_id) == height - 1 && !do_render) {
+      do_render_soon = true;
       buf_index ^= 1;
-      last_frame = next_frame;
       break;
+    } else if(do_render_soon && scanvideo_scanline_number(buffer->scanline_id) == PICO_SCANVIDEO_SCANLINE_BUFFER_COUNT - 1) {
+      // should be safe to reuse old buffer now
+      do_render = do_render_soon;
+      do_render_soon = false;
     }
 
     buffer = scanvideo_begin_scanline_generation(false);
