@@ -47,6 +47,7 @@ if(${PICO_BOARD} STREQUAL "vgaboard")
     target_link_libraries(BlitHalPico INTERFACE pico_scanvideo_dpi pico_audio_i2s tinyusb_host)
     target_compile_definitions(BlitHalPico INTERFACE
         PICO_SCANVIDEO_PLANE1_VARIABLE_FRAGMENT_DMA=1
+        PICO_SCANVIDEO_MAX_SCANLINE_BUFFER_WORDS=12
         AUDIO_I2S
         DISPLAY_SCANVIDEO
         USB_HOST
