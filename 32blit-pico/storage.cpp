@@ -493,7 +493,7 @@ int32_t storage_read(uint32_t sector, uint32_t offset, void *buffer, uint32_t si
 
     return size_bytes;
   } else {
-    uint32_t read;
+    uint32_t read = 0;
     sd_command_read_block_multiple(18, sector, (uint8_t *)buffer, blocks, read);
     return read;
   }
