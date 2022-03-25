@@ -3,11 +3,16 @@
 #include "hardware/irq.h"
 #include "pico/stdlib.h"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmissing-field-initializers"
+
 extern "C" {
 #include "dvi.h"
 #include "tmds_encode.h"
 #include "common_dvi_pin_configs.h"
 }
+
+#pragma GCC diagnostic pop
 
 #define DVI_TIMING dvi_timing_640x480p_60hz
 
