@@ -126,13 +126,13 @@ void update_input() {
     mapping++;
 
   api.buttons = dpad_map[hid_hat > 8 ? 8 : hid_hat]
-                    | (hid_buttons & (1 << mapping->a) ? Button::A : 0)
-                    | (hid_buttons & (1 << mapping->b) ? Button::B : 0)
-                    | (hid_buttons & (1 << mapping->x) ? Button::X : 0)
-                    | (hid_buttons & (1 << mapping->y) ? Button::Y : 0)
-                    | (hid_buttons & (1 << mapping->menu) ? Button::MENU : 0)
-                    | (hid_buttons & (1 << mapping->home) ? Button::HOME : 0)
-                    | (hid_buttons & (1 << mapping->joystick) ? Button::JOYSTICK : 0);
+                    | (hid_buttons & (1 << mapping->a)        ? uint32_t(Button::A) : 0)
+                    | (hid_buttons & (1 << mapping->b)        ? uint32_t(Button::B) : 0)
+                    | (hid_buttons & (1 << mapping->x)        ? uint32_t(Button::X) : 0)
+                    | (hid_buttons & (1 << mapping->y)        ? uint32_t(Button::Y) : 0)
+                    | (hid_buttons & (1 << mapping->menu)     ? uint32_t(Button::MENU) : 0)
+                    | (hid_buttons & (1 << mapping->home)     ? uint32_t(Button::HOME) : 0)
+                    | (hid_buttons & (1 << mapping->joystick) ? uint32_t(Button::JOYSTICK) : 0);
 
   api.joystick.x = (float(hid_joystick[0]) - 0x80) / 0x80;
   api.joystick.y = (float(hid_joystick[1]) - 0x80) / 0x80;
