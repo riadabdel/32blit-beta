@@ -10,10 +10,6 @@
 #include "config.h"
 #include "binary_info.hpp"
 
-#ifndef STORAGE_SD
-#define STORAGE_FLASH
-#endif
-
 #ifdef STORAGE_FLASH
 #include "hardware/flash.h"
 #include "hardware/sync.h"

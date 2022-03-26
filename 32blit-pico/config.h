@@ -36,3 +36,7 @@
 #ifndef USB_PRODUCT_STR
 #define USB_PRODUCT_STR "Device"
 #endif
+
+#if !defined(STORAGE_SD) && !defined(STORAGE_FLASH)
+#define STORAGE_FLASH
+#endif
