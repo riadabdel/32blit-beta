@@ -1,11 +1,14 @@
 #include <stdio.h>
 #include <random>
 
+#include "hardware/flash.h"
 #include "hardware/structs/rosc.h"
 #include "hardware/vreg.h"
 #include "pico/binary_info.h"
 #include "pico/multicore.h"
 #include "pico/stdlib.h"
+
+#include "ff.h"
 
 #include "audio.hpp"
 #include "binary_info.hpp"
@@ -66,6 +69,74 @@ static uint32_t get_max_us_timer() {
 
 const char *get_launch_path()  {
   return nullptr;
+}
+
+static bool cached_file_in_tmp = false;
+
+static const uint8_t *flash_to_tmp(const std::string &filename, uint32_t &size) {
+#ifndef STORAGE_FLASH
+  // if we're not using flash for the fs, use the same area as a cache
+  static const uint32_t storage_size = PICO_FLASH_SIZE_BYTES / 4;
+  static const uint32_t storage_offset = PICO_FLASH_SIZE_BYTES - storage_size;
+
+  if(cached_file_in_tmp)
+    return nullptr;
+
+  auto f = new FIL;
+  if(f_open(f, filename.c_str(), FA_READ) != FR_OK) {
+    delete f;
+    return nullptr;
+  }
+
+  size = f_size(f);
+
+  if(size > storage_size) {
+    f_close(f);
+    delete f;
+    return nullptr;
+  }
+
+  const int buffer_size = 1024;
+  uint8_t buffer[buffer_size];
+
+  FSIZE_t bytes_flashed = 0;
+  while(bytes_flashed < size) {
+    UINT bytes_read;
+    auto res = f_read(f, (void *)buffer, buffer_size, &bytes_read);
+
+    if(res != FR_OK)
+      break;
+
+    // erase/write
+    auto status = save_and_disable_interrupts();
+    multicore_lockout_start_blocking(); // pause core1
+
+    if((bytes_flashed & (FLASH_SECTOR_SIZE - 1)) == 0)
+      flash_range_erase(storage_offset + bytes_flashed, FLASH_SECTOR_SIZE);
+
+    flash_range_program(storage_offset + bytes_flashed, buffer, buffer_size);
+
+    multicore_lockout_end_blocking(); // resume core1
+    restore_interrupts(status);
+
+    bytes_flashed += bytes_read;
+  }
+
+  f_close(f);
+  delete f;
+
+  if(bytes_flashed < size)
+    return nullptr;
+
+  cached_file_in_tmp = true;
+  return (uint8_t *)XIP_BASE + storage_offset;
+#else
+  return nullptr;
+#endif
+}
+
+static void tmp_file_closed(const uint8_t *ptr) {
+  cached_file_in_tmp = false;
 }
 
 static GameMetadata get_metadata() {
@@ -188,8 +259,8 @@ int main() {
   api.set_multiplayer_enabled = ::set_multiplayer_enabled;
   api.send_message = ::send_multiplayer_message;
 
-  // api.flash_to_tmp = ::flash_to_tmp;
-  // api.tmp_file_closed = ::tmp_file_closed;
+  api.flash_to_tmp = ::flash_to_tmp;
+  api.tmp_file_closed = ::tmp_file_closed;
 
   api.get_metadata = ::get_metadata;
 
