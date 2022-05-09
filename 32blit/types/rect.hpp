@@ -20,7 +20,7 @@ namespace blit {
     inline Rect& operator*= (const float a) { x = static_cast<int32_t>(x * a); y = static_cast<int32_t>(y * a); w = static_cast<int32_t>(w * a); h = static_cast<int32_t>(h * a); return *this; }
 
     Size size() const {
-      return Size(w, h);
+      return {w, h};
     }
 
     bool empty() const {
@@ -40,11 +40,11 @@ namespace blit {
     }
 
     Rect intersection(const Rect &r) const {
-      return Rect(
+      return {
         std::max(x, r.x),
         std::max(y, r.y),
         std::min(x + w, r.x + r.w) - std::max(x, r.x),
-        std::min(y + h, r.y + r.h) - std::max(y, r.y));
+        std::min(y + h, r.y + r.h) - std::max(y, r.y)};
     }
 
     // TODO: hate this function name
@@ -97,29 +97,29 @@ namespace blit {
     }
 
     Point clamp(Point p) const {
-      return Point(
+      return {
         p.x < x ? x : (p.x > x + w ? x + w : p.x),
-        p.y < y ? y : (p.y > y + h ? y + h : p.y));
+        p.y < y ? y : (p.y > y + h ? y + h : p.y)};
     }
 
     Point tl() const {
-      return Point(x, y);
+      return {x, y};
     }
 
     Point tr() const {
-      return Point(x + w, y);
+      return {x + w, y};
     }
 
     Point bl() const {
-      return Point(x, y + h);
+      return {x, y + h};
     }
 
     Point br() const {
-      return Point(x + w, y + h);
+      return {x + w, y + h};
     }
 
     Point center() const {
-      return Point(x + w/2, y + h/2);
+      return {x + w/2, y + h/2};
     }
 
   };

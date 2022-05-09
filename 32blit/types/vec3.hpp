@@ -35,7 +35,7 @@ namespace blit {
   };
 
   inline Vec3 operator-  (Vec3 lhs, const Vec3 &rhs) { lhs -= rhs; return lhs; }
-  inline Vec3 operator-  (const Vec3 &rhs) { return Vec3(-rhs.x, -rhs.y, -rhs.z); }
+  inline Vec3 operator-  (const Vec3 &rhs) { return {-rhs.x, -rhs.y, -rhs.z}; }
   inline Vec3 operator+  (Vec3 lhs, const Vec3 &rhs) { lhs += rhs; return lhs; }
   inline Vec3 operator*  (Vec3 lhs, const float a) { lhs *= a; return lhs; }
   inline Vec3 operator*  (Vec3 lhs, const Mat4 &a) { lhs *= a; return lhs; }

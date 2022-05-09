@@ -24,8 +24,8 @@ namespace blit {
 
   void   Vec3::normalize() { float d = this->length(); x /= d; y /= d; z /= d; }
   float  Vec3::length() { return sqrtf(x * x + y * y + z * z); }
-  Vec3   Vec3::cross(const Vec3 &a) { return Vec3(y * a.z - z * a.y, z * a.x - x * a.z, x * a.y - y * a.x); }
-  Vec3   Vec3::cross(const Vec3 *a) { return Vec3(y * a->z - z * a->y, z * a->x - x * a->z, x * a->y - y * a->x); }
+  Vec3   Vec3::cross(const Vec3 &a) { return {y * a.z - z * a.y, z * a.x - x * a.z, x * a.y - y * a.x}; }
+  Vec3   Vec3::cross(const Vec3 *a) { return {y * a->z - z * a->y, z * a->x - x * a->z, x * a->y - y * a->x}; }
   float  Vec3::dot(const Vec3 &a) { return (x * a.x) + (y * a.y) + (z * a.z); }
   float  Vec3::dot(const Vec3 *a) { return (x * a->x) + (y * a->y) + (z * a->z); }
 
