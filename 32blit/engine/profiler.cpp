@@ -50,7 +50,7 @@ uint32_t ProfilerProbe::store_elapsed_us(bool bRestart)
 
 const char *Profiler::g_pszMetricNames[4]= {"Min", "Cur", "Avg", "Max"};
 
-Profiler::Profiler(uint32_t uRunningAverageSize, uint32_t uRunningAverageSpan ) : m_uGraphTimeUs(20000), m_uRunningAverageSize(uRunningAverageSize), m_uRunningAverageSpan(uRunningAverageSpan), m_uRowHeight(10), m_uBorder(5), m_uHeaderSize(15), m_uAlpha(160)
+Profiler::Profiler(uint32_t uRunningAverageSize, uint32_t uRunningAverageSpan ) : m_uRunningAverageSize(uRunningAverageSize), m_uRunningAverageSpan(uRunningAverageSpan)
 {
   if(api.enable_us_timer)
 	  api.enable_us_timer();
@@ -61,11 +61,6 @@ Profiler::Profiler(uint32_t uRunningAverageSize, uint32_t uRunningAverageSpan ) 
 	// default, just display cur, no bars, no history
 	m_graphElements[dmCur].bDisplayLabel = true;
 }
-
-Profiler::~Profiler()
-{
-}
-
 
 
 ProfilerProbe *Profiler::add_probe(const char *pszName)

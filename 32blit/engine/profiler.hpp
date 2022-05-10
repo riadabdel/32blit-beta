@@ -63,7 +63,7 @@ public:
 	};
 
 
-	ProfilerProbe(const char *pszName, uint32_t uRunningAverageSize = 0, uint32_t uRunningAverageSpan = 1) : m_pszName(pszName), m_uStartUs(0), m_metrics(), m_pRunningAverage(nullptr), m_uGraphTimeUs(20000)
+	ProfilerProbe(const char *pszName, uint32_t uRunningAverageSize = 0, uint32_t uRunningAverageSpan = 1) : m_pszName(pszName), m_metrics()
 	{
 		if(uRunningAverageSize)
 		{
@@ -120,12 +120,12 @@ public:
 
 private:
 	const char 						*m_pszName;
-	uint32_t							m_uStartUs;
+	uint32_t							m_uStartUs = 0;
 	Metrics								m_metrics;
-	RunningAverage<float> *m_pRunningAverage;
+	RunningAverage<float> *m_pRunningAverage = nullptr;
 	uint32_t							m_uRunningAverageSpan;
 	uint32_t							m_uRunningAverageSpanIndex;
-	uint32_t							m_uGraphTimeUs;
+	uint32_t							m_uGraphTimeUs = 20000;
 };
 
 
@@ -169,7 +169,7 @@ public:
 
 
 	Profiler(uint32_t uRunningAverageSize = 0, uint32_t uRunningAverageSpan = 1);
-	virtual ~Profiler();
+	virtual ~Profiler() = default;
 
 	ProfilerProbe *add_probe(const char *pszName);
 	ProfilerProbe *add_probe(const char *pszName,  uint32_t uRunningAverageSize, uint32_t uRunningAverageSpan=1);
@@ -201,15 +201,14 @@ private:
 	uint16_t				m_uWidth;
 	uint16_t				m_uHeight;
 	uint16_t				m_uRows;
-	int32_t				  	m_uGraphTimeUs;
+	int32_t				  m_uGraphTimeUs = 20000;
 	uint32_t				m_uRunningAverageSize;
 	uint32_t				m_uRunningAverageSpan;
-	uint16_t				m_uRowHeight;
-	uint16_t				m_uBorder;
-	uint16_t				m_uHeaderSize;
-	uint8_t					m_uAlpha;
+	uint16_t				m_uRowHeight = 10;
+	uint16_t				m_uBorder = 5;
+	uint16_t				m_uHeaderSize = 15;
+	uint8_t					m_uAlpha = 160;
 	bool					m_bDisplayHistory;
 	Pen						m_historyColor;
-
 };
 }; // namespace
