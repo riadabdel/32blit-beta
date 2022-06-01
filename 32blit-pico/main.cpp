@@ -270,7 +270,7 @@ int main() {
   init_fs();
   init_usb();
 
-#if defined(DISPLAY_SCANVIDEO)
+#if defined(DISPLAY_SCANVIDEO) || defined(DISPLAY_PICODVI)
   multicore_launch_core1(core1_main);
 #endif
 
