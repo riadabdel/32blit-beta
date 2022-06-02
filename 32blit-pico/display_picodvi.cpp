@@ -27,19 +27,27 @@ static dvi_inst dvi0;
 static void __not_in_flash_func(dvi_loop)() {
   auto inst = &dvi0;
 
-  uint32_t scanbuf[160];
+  uint32_t double_buf[160];
   int y = 0;
 
   while(true) {
 
-    // pixel double x2
-    if(!(y & 1)) {
-      auto out = scanbuf;
-      auto in = screen_fb + buf_index * (160 * 120) + (y / 2) * 160;
-      for(int i = 0; i < 160; i++) {
-        auto pixel = *in++;
-        *out++ = pixel | pixel << 16;
+    uint32_t *scanbuf;
+
+    if(cur_screen_mode == ScreenMode::lores) {
+      // pixel double x2
+      if(!(y & 1)) {
+        auto out = double_buf;
+        auto in = screen_fb + buf_index * (160 * 120) + (y / 2) * 160;
+        for(int i = 0; i < 160; i++) {
+          auto pixel = *in++;
+          *out++ = pixel | pixel << 16;
+        }
       }
+
+      scanbuf = double_buf;
+    } else {
+      scanbuf = (uint32_t *)(screen_fb + y * 320);
     }
 
     //copy/paste of dvi_prepare_scanline_16bpp
