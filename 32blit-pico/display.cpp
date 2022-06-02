@@ -115,21 +115,24 @@ static void __not_in_flash_func(dvi_loop)() {
     uint32_t *scanbuf;
 
     if(cur_screen_mode == ScreenMode::lores) {
+      const auto lores_w = DISPLAY_WIDTH / 2;
+      const auto lores_h = DISPLAY_HEIGHT / 2;
+
       // pixel double x2
       if(!(y & 1)) {
         auto out = double_buf;
 
         if(screen.format == PixelFormat::P) {
-          auto in = (uint8_t *)screen_fb + buf_index * (160 * 120) + (y / 2) * 160;
+          auto in = (uint8_t *)screen_fb + buf_index * (lores_w * lores_h) + (y / 2) * lores_w;
 
-          for(int i = 0; i < 160; i++) {
+          for(int i = 0; i < lores_w; i++) {
             auto pixel = screen_palette565[*in++];
             *out++ = pixel | pixel << 16;
           }
         } else {
           // RGB565
-          auto in = screen_fb + buf_index * (160 * 120) + (y / 2) * 160;
-          for(int i = 0; i < 160; i++) {
+          auto in = screen_fb + buf_index * (lores_w * lores_h) + (y / 2) * lores_w;
+          for(int i = 0; i < lores_w; i++) {
             auto pixel = *in++;
             *out++ = pixel | pixel << 16;
           }
@@ -140,7 +143,7 @@ static void __not_in_flash_func(dvi_loop)() {
     } else if(screen.format == PixelFormat::P) {
       // paletted hires
       auto out = double_buf;
-      auto in = (uint8_t *)screen_fb + buf_index * (320 * 240) + y * 320;
+      auto in = (uint8_t *)screen_fb + buf_index * (DISPLAY_WIDTH * DISPLAY_HEIGHT) + y * DISPLAY_WIDTH;
 
       for(int i = 0; i < 160; i++) {
         auto pixel0 = screen_palette565[*in++];
@@ -151,7 +154,7 @@ static void __not_in_flash_func(dvi_loop)() {
       scanbuf = double_buf;
     } else {
       // hires
-      scanbuf = (uint32_t *)(screen_fb + y * 320);
+      scanbuf = (uint32_t *)(screen_fb + y * DISPLAY_WIDTH);
     }
 
     //copy/paste of dvi_prepare_scanline_16bpp
@@ -165,7 +168,7 @@ static void __not_in_flash_func(dvi_loop)() {
     queue_add_blocking_u32(&inst->q_tmds_valid, &tmdsbuf);
 
     y++;
-    if(y == 240) {
+    if(y == DISPLAY_HEIGHT) {
       y = 0;
       if(!do_render) {
         do_render = true;
