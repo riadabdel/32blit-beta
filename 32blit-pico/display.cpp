@@ -1,5 +1,7 @@
 #include "display.hpp"
 
+#include <cstring>
+
 #include "config.h"
 
 using namespace blit;
@@ -11,6 +13,10 @@ uint16_t screen_fb[DISPLAY_WIDTH * DISPLAY_HEIGHT];
 #else
 uint16_t screen_fb[lores_page_size]; // double-buffered
 #endif
+
+// TODO: this is wasting 1.5k if you're not using paletted modes
+static Pen screen_palette[256];
+uint16_t screen_palette565[256];
 
 static const Size lores_screen_size(DISPLAY_WIDTH / 2, DISPLAY_HEIGHT / 2);
 static const Size hires_screen_size(DISPLAY_WIDTH, DISPLAY_HEIGHT);
@@ -56,9 +62,18 @@ bool set_screen_mode_format(ScreenMode new_mode, SurfaceTemplate &new_surf_templ
 
   display_mode_changed(new_mode);
 
-  // don't support any other formats for various reasons (RAM, no format conversion, pixel double PIO)
-  if(new_surf_template.format != PixelFormat::RGB565)
+  if(new_surf_template.format == PixelFormat::P) {
+#ifdef DISPLAY_PICODVI // only handled here so far
+    new_surf_template.palette = screen_palette;
+
+    // update converted palette
+    for(int i = 0; i < 256; i++)
+      screen_palette565[i] = (screen_palette[i].r >> 3) | ((screen_palette[i].g >> 2) << 5) | ((screen_palette[i].b >> 3) << 11);
+#else
     return false;
+#endif
+  } else if(new_surf_template.format != PixelFormat::RGB565)
+    return false; // don't support any other formats for various reasons (RAM, no format conversion, pixel double PIO)
 
   cur_screen_mode = new_mode;
 
@@ -66,5 +81,8 @@ bool set_screen_mode_format(ScreenMode new_mode, SurfaceTemplate &new_surf_templ
 }
 
 void set_screen_palette(const Pen *colours, int num_cols) {
+  memcpy(screen_palette, colours, num_cols * sizeof(Pen));
 
+  for(int i = 0; i < num_cols; i++)
+    screen_palette565[i] = (colours[i].r >> 3) | ((colours[i].g >> 2) << 5) | ((colours[i].b >> 3) << 11);
 }

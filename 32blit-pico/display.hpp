@@ -10,6 +10,7 @@ static const int lores_page_size = (DISPLAY_WIDTH / 2) * ((DISPLAY_HEIGHT + 1) /
 
 extern blit::ScreenMode cur_screen_mode;
 extern uint16_t screen_fb[];
+extern uint16_t screen_palette565[];
 
 void init_display();
 void update_display(uint32_t time);
