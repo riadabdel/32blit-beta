@@ -41,15 +41,39 @@ static void __not_in_flash_func(dvi_loop)() {
       // pixel double x2
       if(!(y & 1)) {
         auto out = double_buf;
-        auto in = screen_fb + buf_index * (lores_w * lores_h) + (y / 2) * lores_w;
-        for(int i = 0; i < lores_w; i++) {
-          auto pixel = *in++;
-          *out++ = pixel | pixel << 16;
+
+        if(screen.format == PixelFormat::P) {
+          auto in = (uint8_t *)screen_fb + buf_index * (lores_w * lores_h) + (y / 2) * lores_w;
+
+          for(int i = 0; i < lores_w; i++) {
+            auto pixel = screen_palette565[*in++];
+            *out++ = pixel | pixel << 16;
+          }
+        } else {
+          // RGB565
+          auto in = screen_fb + buf_index * (lores_w * lores_h) + (y / 2) * lores_w;
+          for(int i = 0; i < lores_w; i++) {
+            auto pixel = *in++;
+            *out++ = pixel | pixel << 16;
+          }
         }
       }
 
       scanbuf = double_buf;
+    } else if(screen.format == PixelFormat::P) {
+      // paletted hires
+      auto out = double_buf;
+      auto in = (uint8_t *)screen_fb + buf_index * (DISPLAY_WIDTH * DISPLAY_HEIGHT) + y * DISPLAY_WIDTH;
+
+      for(int i = 0; i < 160; i++) {
+        auto pixel0 = screen_palette565[*in++];
+        auto pixel1 = screen_palette565[*in++];
+        *out++ = pixel0 | pixel1 << 16;
+      }
+
+      scanbuf = double_buf;
     } else {
+      // hires
       scanbuf = (uint32_t *)(screen_fb + y * DISPLAY_WIDTH);
     }
 
@@ -85,8 +109,17 @@ void init_display() {
 
 void update_display(uint32_t time) {
   if(do_render) {
-    if(cur_screen_mode == ScreenMode::lores)
-      screen.data = (uint8_t *)screen_fb + (buf_index ^ 1) * lores_page_size; // only works because there's no "firmware" here
+    if(cur_screen_mode == ScreenMode::lores || screen.format == PixelFormat::P) {
+      // swap pages
+      int page_size;
+      if(cur_screen_mode == ScreenMode::lores)
+        page_size = screen.format == PixelFormat::P ? lores_page_size / 2 : lores_page_size;
+      else // paletted hires
+        page_size = DISPLAY_WIDTH * DISPLAY_HEIGHT;
+
+      screen.data = (uint8_t *)screen_fb + (buf_index ^ 1) * page_size; // only works because there's no "firmware" here
+    }
+
     ::render(time);
     do_render = false;
   }
