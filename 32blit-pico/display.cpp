@@ -365,16 +365,6 @@ bool set_screen_mode_format(ScreenMode new_mode, SurfaceTemplate &new_surf_templ
 #endif
   }
 
-#ifdef DISPLAY_ST7789
-  if(have_vsync)
-    do_render = true; // prevent starting an update during switch
-
-  st7789::set_pixel_double(new_mode == ScreenMode::lores);
-
-  if(new_mode == ScreenMode::hires)
-    st7789::frame_buffer = screen_fb;
-#endif
-
   if(new_surf_template.format == PixelFormat::P) {
 #ifdef DISPLAY_PICODVI // only handled here so far
 
@@ -389,6 +379,16 @@ bool set_screen_mode_format(ScreenMode new_mode, SurfaceTemplate &new_surf_templ
 #endif
   } else if(new_surf_template.format != PixelFormat::RGB565)
     return false; // don't support any other formats for various reasons (RAM, no format conversion, pixel double PIO)
+
+#ifdef DISPLAY_ST7789
+  if(have_vsync)
+    do_render = true; // prevent starting an update during switch
+
+  st7789::set_pixel_double(new_mode == ScreenMode::lores);
+
+  if(new_mode == ScreenMode::hires)
+    st7789::frame_buffer = screen_fb;
+#endif
 
   cur_screen_mode = new_mode;
 
