@@ -371,9 +371,6 @@ bool set_screen_mode_format(ScreenMode new_mode, SurfaceTemplate &new_surf_templ
     init_palette();
     new_surf_template.palette = screen_palette;
 
-    // update converted palette
-    for(int i = 0; i < 256; i++)
-      screen_palette565[i] = (screen_palette[i].r >> 3) | ((screen_palette[i].g >> 2) << 5) | ((screen_palette[i].b >> 3) << 11);
 #else
     return false;
 #endif
