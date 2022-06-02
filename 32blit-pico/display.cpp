@@ -69,8 +69,6 @@ bool set_screen_mode_format(ScreenMode new_mode, SurfaceTemplate &new_surf_templ
 #endif
   }
 
-  display_mode_changed(new_mode);
-
   if(new_surf_template.format == PixelFormat::P) {
 #ifdef DISPLAY_PICODVI // only handled here so far
 
@@ -82,6 +80,8 @@ bool set_screen_mode_format(ScreenMode new_mode, SurfaceTemplate &new_surf_templ
 #endif
   } else if(new_surf_template.format != PixelFormat::RGB565)
     return false; // don't support any other formats for various reasons (RAM, no format conversion, pixel double PIO)
+
+  display_mode_changed(new_mode);
 
   cur_screen_mode = new_mode;
 
