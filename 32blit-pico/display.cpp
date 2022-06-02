@@ -142,7 +142,7 @@ static void __not_in_flash_func(dvi_loop)() {
     } else if(screen.format == PixelFormat::P) {
       // paletted hires
       auto out = double_buf;
-      auto in = (uint8_t *)screen_fb + buf_index * (DISPLAY_WIDTH * DISPLAY_HEIGHT) + y * DISPLAY_WIDTH;
+      auto in = (uint8_t *)screen_fb + buf_index * (DISPLAY_WIDTH * DISPLAY_HEIGHT) * ALLOW_HIRES + y * DISPLAY_WIDTH;
 
       for(int i = 0; i < 160; i++) {
         auto pixel0 = screen_palette565[*in++];
@@ -226,7 +226,7 @@ void update_display(uint32_t time) {
 
 #elif defined(DISPLAY_SCANVIDEO) || defined(DISPLAY_PICODVI)
   if(do_render) {
-    if(cur_screen_mode == ScreenMode::lores || screen.format == PixelFormat::P) {
+    if(cur_screen_mode == ScreenMode::lores || (screen.format == PixelFormat::P && ALLOW_HIRES)) {
       // swap pages
       int page_size;
       if(cur_screen_mode == ScreenMode::lores)
@@ -355,11 +355,13 @@ bool set_screen_mode_format(ScreenMode new_mode, SurfaceTemplate &new_surf_templ
       break;
     case ScreenMode::hires:
     case ScreenMode::hires_palette:
-#if ALLOW_HIRES
       new_surf_template.bounds = hires_screen.bounds;
+#if ALLOW_HIRES
       break;
 #else
-      return false; // no hires for scanvideo
+      // can squeeze single-buffered hires paletted into the double-buffered lores fb
+      if(new_surf_template.format != PixelFormat::P)
+        return false;
 #endif
   }
 
