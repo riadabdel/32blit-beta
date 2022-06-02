@@ -63,7 +63,7 @@ static void __not_in_flash_func(dvi_loop)() {
     } else if(screen.format == PixelFormat::P) {
       // paletted hires
       auto out = double_buf;
-      auto in = (uint8_t *)screen_fb + buf_index * (DISPLAY_WIDTH * DISPLAY_HEIGHT) + y * DISPLAY_WIDTH;
+      auto in = (uint8_t *)screen_fb + buf_index * (DISPLAY_WIDTH * DISPLAY_HEIGHT) * ALLOW_HIRES + y * DISPLAY_WIDTH;
 
       for(int i = 0; i < 160; i++) {
         auto pixel0 = screen_palette565[*in++];
@@ -109,7 +109,7 @@ void init_display() {
 
 void update_display(uint32_t time) {
   if(do_render) {
-    if(cur_screen_mode == ScreenMode::lores || screen.format == PixelFormat::P) {
+    if(cur_screen_mode == ScreenMode::lores || (screen.format == PixelFormat::P && ALLOW_HIRES)) {
       // swap pages
       int page_size;
       if(cur_screen_mode == ScreenMode::lores)
