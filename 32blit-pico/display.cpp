@@ -43,9 +43,8 @@ static uint16_t screen_fb[DISPLAY_WIDTH * DISPLAY_HEIGHT];
 static uint16_t screen_fb[lores_page_size]; // double-buffered
 #endif
 
-// TODO: this is wasting 1.5k if you're not using paletted modes
-static Pen screen_palette[256];
-static uint16_t screen_palette565[256];
+static Pen *screen_palette = nullptr;
+static uint16_t *screen_palette565 = nullptr;
 
 static const blit::SurfaceTemplate lores_screen{(uint8_t *)screen_fb, Size(DISPLAY_WIDTH / 2, DISPLAY_HEIGHT / 2), blit::PixelFormat::RGB565, nullptr};
 static const blit::SurfaceTemplate hires_screen{(uint8_t *)screen_fb, Size(DISPLAY_WIDTH, DISPLAY_HEIGHT), blit::PixelFormat::RGB565, nullptr};
@@ -304,6 +303,14 @@ bool display_render_needed() {
   return do_render;
 }
 
+static void init_palette() {
+    if(!screen_palette) {
+    // allocate on first use
+    screen_palette = new Pen[256];
+    screen_palette565 = new uint16_t[256]();
+  }
+}
+
 // blit api
 
 SurfaceInfo &set_screen_mode(ScreenMode mode) {
@@ -368,6 +375,8 @@ bool set_screen_mode_format(ScreenMode new_mode, SurfaceTemplate &new_surf_templ
 
   if(new_surf_template.format == PixelFormat::P) {
 #ifdef DISPLAY_PICODVI // only handled here so far
+
+    init_palette();
     new_surf_template.palette = screen_palette;
 
     // update converted palette
@@ -385,6 +394,7 @@ bool set_screen_mode_format(ScreenMode new_mode, SurfaceTemplate &new_surf_templ
 }
 
 void set_screen_palette(const Pen *colours, int num_cols) {
+  init_palette();
   memcpy(screen_palette, colours, num_cols * sizeof(Pen));
 
   for(int i = 0; i < num_cols; i++)
