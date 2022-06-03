@@ -83,10 +83,8 @@ bool set_screen_mode_format(ScreenMode new_mode, SurfaceTemplate &new_surf_templ
     return false;
 
   if(new_surf_template.format == PixelFormat::P) {
-#ifdef DISPLAY_PICODVI // only handled here so far
     init_palette();
     new_surf_template.palette = screen_palette;
-#endif
   }
 
   display_mode_changed(new_mode, new_surf_template);

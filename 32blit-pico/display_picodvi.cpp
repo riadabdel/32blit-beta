@@ -111,13 +111,7 @@ void update_display(uint32_t time) {
   if(do_render) {
     if(cur_screen_mode == ScreenMode::lores || (screen.format == PixelFormat::P && ALLOW_HIRES)) {
       // swap pages
-      int page_size;
-      if(cur_screen_mode == ScreenMode::lores)
-        page_size = screen.format == PixelFormat::P ? lores_page_size / 2 : lores_page_size;
-      else // paletted hires
-        page_size = DISPLAY_WIDTH * DISPLAY_HEIGHT;
-
-      screen.data = (uint8_t *)screen_fb + (buf_index ^ 1) * page_size; // only works because there's no "firmware" here
+      screen.data = (uint8_t *)screen_fb + (buf_index ^ 1) * get_display_page_size(); // only works because there's no "firmware" here
     }
 
     ::render(time);
@@ -140,5 +134,5 @@ bool display_render_needed() {
   return do_render;
 }
 
-void display_mode_changed(blit::ScreenMode new_mode) {
+void display_mode_changed(blit::ScreenMode new_mode, blit::PixelFormat new_format) {
 }
