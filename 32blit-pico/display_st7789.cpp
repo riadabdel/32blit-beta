@@ -31,11 +31,13 @@ void init_display() {
 }
 
 void update_display(uint32_t time) {
-  if((do_render || (!have_vsync && time - last_render >= 20)) && (cur_screen_mode == ScreenMode::lores || !st7789::dma_is_busy())) {
-    if(cur_screen_mode == ScreenMode::lores) {
+  bool can_flip = cur_screen_mode == ScreenMode::lores || (screen.format == PixelFormat::P && ALLOW_HIRES);
+
+  if((do_render || (!have_vsync && time - last_render >= 20)) && (can_flip || !st7789::dma_is_busy())) {
+    if(can_flip) {
       buf_index ^= 1;
 
-      screen.data = (uint8_t *)screen_fb + (buf_index) * lores_page_size;
+      screen.data = (uint8_t *)screen_fb + (buf_index) * get_display_page_size();
       st7789::frame_buffer = (uint16_t *)screen.data;
     }
 
@@ -68,7 +70,7 @@ bool display_render_needed() {
 }
 
 bool display_mode_supported(blit::ScreenMode new_mode, const blit::SurfaceTemplate &new_surf_template) {
-  if(new_surf_template.format != blit::PixelFormat::RGB565)
+  if(new_surf_template.format != blit::PixelFormat::RGB565 && new_surf_template.format != blit::PixelFormat::P)
     return false;
 
   // TODO: could allow smaller sizes with window
@@ -85,6 +87,10 @@ void display_mode_changed(blit::ScreenMode new_mode, blit::SurfaceTemplate &new_
     do_render = true; // prevent starting an update during switch
 
   st7789::set_pixel_double(new_mode == ScreenMode::lores);
+  st7789::set_palette_mode(new_surf_template.format == PixelFormat::P);
+
+  if(new_surf_template.format == PixelFormat::P)
+    st7789::palette = screen_palette565;
 
   if(new_mode == ScreenMode::hires)
     st7789::frame_buffer = screen_fb;

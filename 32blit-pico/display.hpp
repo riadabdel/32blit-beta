@@ -14,6 +14,13 @@ extern uint16_t screen_fb[];
 #endif
 extern uint16_t *screen_palette565;
 
+inline int get_display_page_size() {
+  if(cur_screen_mode == blit::ScreenMode::lores) // paletted is half the size
+    return blit::screen.format == blit::PixelFormat::P ? lores_page_size / 2 : lores_page_size;
+  else // paletted hires
+    return DISPLAY_WIDTH * DISPLAY_HEIGHT;
+}
+
 void init_display();
 void update_display(uint32_t time);
 
