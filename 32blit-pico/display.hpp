@@ -12,6 +12,13 @@ extern blit::ScreenMode cur_screen_mode;
 extern uint16_t screen_fb[];
 extern uint16_t *screen_palette565;
 
+inline int get_display_page_size() {
+  if(cur_screen_mode == blit::ScreenMode::lores) // paletted is half the size
+    return blit::screen.format == blit::PixelFormat::P ? lores_page_size / 2 : lores_page_size;
+  else // paletted hires
+    return DISPLAY_WIDTH * DISPLAY_HEIGHT;
+}
+
 void init_display();
 void update_display(uint32_t time);
 
@@ -20,7 +27,7 @@ void update_display_core1();
 
 bool display_render_needed();
 
-void display_mode_changed(blit::ScreenMode new_mode);
+void display_mode_changed(blit::ScreenMode new_mode, blit::PixelFormat new_format);
 
 blit::SurfaceInfo &set_screen_mode(blit::ScreenMode mode);
 bool set_screen_mode_format(blit::ScreenMode new_mode, blit::SurfaceTemplate &new_surf_template);
