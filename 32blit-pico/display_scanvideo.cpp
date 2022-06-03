@@ -105,5 +105,5 @@ bool display_render_needed() {
   return do_render;
 }
 
-void display_mode_changed(blit::ScreenMode new_mode) {
+void display_mode_changed(blit::ScreenMode new_mode, blit::PixelFormat new_format) {
 }
