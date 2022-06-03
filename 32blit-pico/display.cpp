@@ -178,6 +178,13 @@ static void __not_in_flash_func(dvi_loop)() {
 }
 #endif
 
+static int get_page_size() {
+  if(cur_screen_mode == ScreenMode::lores) // paletted is half the size
+    return screen.format == PixelFormat::P ? lores_page_size / 2 : lores_page_size;
+  else // paletted hires
+    return DISPLAY_WIDTH * DISPLAY_HEIGHT;
+}
+
 void init_display() {
 #ifdef DISPLAY_ST7789
   st7789::frame_buffer = screen_fb;
@@ -199,11 +206,13 @@ void init_display() {
 void update_display(uint32_t time) {
 
 #ifdef DISPLAY_ST7789
-  if((do_render || (!have_vsync && time - last_render >= 20)) && (cur_screen_mode == ScreenMode::lores || !st7789::dma_is_busy())) {
-    if(cur_screen_mode == ScreenMode::lores) {
+  bool can_flip = cur_screen_mode == ScreenMode::lores || (screen.format == PixelFormat::P && ALLOW_HIRES);
+
+  if((do_render || (!have_vsync && time - last_render >= 20)) && (can_flip || !st7789::dma_is_busy())) {
+    if(can_flip) {
       buf_index ^= 1;
 
-      screen.data = (uint8_t *)screen_fb + (buf_index) * lores_page_size;
+      screen.data = (uint8_t *)screen_fb + buf_index * get_page_size();
       st7789::frame_buffer = (uint16_t *)screen.data;
     }
 
@@ -228,13 +237,7 @@ void update_display(uint32_t time) {
   if(do_render) {
     if(cur_screen_mode == ScreenMode::lores || (screen.format == PixelFormat::P && ALLOW_HIRES)) {
       // swap pages
-      int page_size;
-      if(cur_screen_mode == ScreenMode::lores)
-        page_size = screen.format == PixelFormat::P ? lores_page_size / 2 : lores_page_size;
-      else // paletted hires
-        page_size = DISPLAY_WIDTH * DISPLAY_HEIGHT;
-
-      screen.data = (uint8_t *)screen_fb + (buf_index ^ 1) * page_size; // only works because there's no "firmware" here
+      screen.data = (uint8_t *)screen_fb + (buf_index ^ 1) * get_page_size(); // only works because there's no "firmware" here
     }
 
     ::render(time);
@@ -336,6 +339,7 @@ SurfaceInfo &set_screen_mode(ScreenMode mode) {
     do_render = true; // prevent starting an update during switch
 
   st7789::set_pixel_double(mode == ScreenMode::lores);
+  st7789::set_palette_mode(mode == ScreenMode::hires_palette);
 
   if(mode == ScreenMode::hires)
     st7789::frame_buffer = screen_fb;
@@ -366,10 +370,14 @@ bool set_screen_mode_format(ScreenMode new_mode, SurfaceTemplate &new_surf_templ
   }
 
   if(new_surf_template.format == PixelFormat::P) {
-#ifdef DISPLAY_PICODVI // only handled here so far
+#ifndef DISPLAY_SCANVIDEO
 
     init_palette();
     new_surf_template.palette = screen_palette;
+
+#ifdef DISPLAY_ST7789
+    st7789::palette = screen_palette565;
+#endif
 
 #else
     return false;
@@ -382,6 +390,7 @@ bool set_screen_mode_format(ScreenMode new_mode, SurfaceTemplate &new_surf_templ
     do_render = true; // prevent starting an update during switch
 
   st7789::set_pixel_double(new_mode == ScreenMode::lores);
+  st7789::set_palette_mode(new_surf_template.format == PixelFormat::P);
 
   if(new_mode == ScreenMode::hires)
     st7789::frame_buffer = screen_fb;
