@@ -70,18 +70,17 @@ bool set_screen_mode_format(ScreenMode new_mode, SurfaceTemplate &new_surf_templ
   }
 
   if(new_surf_template.format == PixelFormat::P) {
-#ifdef DISPLAY_PICODVI // only handled here so far
+#ifndef DISPLAY_SCANVIDEO
 
     init_palette();
     new_surf_template.palette = screen_palette;
-
 #else
     return false;
 #endif
   } else if(new_surf_template.format != PixelFormat::RGB565)
     return false; // don't support any other formats for various reasons (RAM, no format conversion, pixel double PIO)
 
-  display_mode_changed(new_mode);
+  display_mode_changed(new_mode, new_surf_template.format);
 
   cur_screen_mode = new_mode;
 
