@@ -23,14 +23,23 @@ static volatile int buf_index = 0;
 
 static volatile bool do_render = true;
 static dvi_inst dvi0;
+static int y = 0;
 
-static void __not_in_flash_func(dvi_loop)() {
+static void __no_inline_not_in_flash_func(dvi_update)() {
   auto inst = &dvi0;
 
   uint32_t double_buf[160];
-  int y = 0;
 
   while(true) {
+    uint32_t *tmdsbuf;
+    if(!queue_try_remove_u32(&inst->q_tmds_free, &tmdsbuf)) {
+      // blocking wait for second pixel-doubled line
+      // or we'll lose the data
+      if(cur_screen_mode == ScreenMode::lores && (y & 1))
+        queue_remove_blocking_u32(&inst->q_tmds_free, &tmdsbuf);
+      else
+        return;
+    }
 
     uint32_t *scanbuf;
 
@@ -77,9 +86,7 @@ static void __not_in_flash_func(dvi_loop)() {
       scanbuf = (uint32_t *)(screen_fb + y * DISPLAY_WIDTH);
     }
 
-    //copy/paste of dvi_prepare_scanline_16bpp
-    uint32_t *tmdsbuf;
-    queue_remove_blocking_u32(&inst->q_tmds_free, &tmdsbuf);
+    // dvi_prepare_scanline_16bpp
     uint pixwidth = inst->timing->h_active_pixels;
     uint words_per_channel = pixwidth / DVI_SYMBOLS_PER_WORD;
     tmds_encode_data_channel_16bpp(scanbuf, tmdsbuf + 0 * words_per_channel, pixwidth / 2, DVI_16BPP_BLUE_MSB,  DVI_16BPP_BLUE_LSB );
@@ -122,12 +129,10 @@ void update_display(uint32_t time) {
 void init_display_core1() {
   dvi_register_irqs_this_core(&dvi0, DMA_IRQ_0);
   dvi_start(&dvi0);
-
-  // TODO: this assumes nothing else wants to use core 1 (it doesn't return)
-  dvi_loop();
 }
 
 void update_display_core1() {
+  dvi_update();
 }
 
 bool display_render_needed() {
