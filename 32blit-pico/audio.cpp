@@ -30,6 +30,8 @@ static uint32_t beep_time = 0;
 
 #ifdef HAVE_AUDIO
 static audio_buffer_pool *audio_pool = nullptr;
+
+static struct audio_buffer *cur_buffer = nullptr;
 #endif
 
 void init_audio() {
@@ -137,25 +139,38 @@ void update_audio(uint32_t time) {
   pwm_set_enabled(slice_num, on);
 #endif
 #ifdef HAVE_AUDIO
-  // audio
-  struct audio_buffer *buffer = take_audio_buffer(audio_pool, false);
-  if(buffer) {
-    auto samples = (int16_t *) buffer->buffer->bytes;
+
+  // attempt to get new buffer
+  if(!cur_buffer) {
+    cur_buffer = take_audio_buffer(audio_pool, false);
+    if(cur_buffer)
+      cur_buffer->sample_count = 0;
+  }
+
+  if(cur_buffer) {
+    auto samples = ((int16_t *)cur_buffer->buffer->bytes) + cur_buffer->sample_count;
+
+    auto max_samples = cur_buffer->max_sample_count - cur_buffer->sample_count;
+
 #ifdef AUDIO_I2S
-    for(uint32_t i = 0; i < buffer->max_sample_count; i += 2) {
+    for(uint32_t i = 0; i < max_samples; i += 2) {
       int val = (int)blit::get_audio_frame() - 0x8000;
       *samples++ = val;
       *samples++ = val;
     }
 #endif
 #ifdef AUDIO_PWM
-    for(uint32_t i = 0; i < buffer->max_sample_count; i++) {
+    for(uint32_t i = 0; i < max_samples; i++) {
       int val = (int)blit::get_audio_frame() - 0x8000;
       *samples++ = val;
     }
 #endif
-    buffer->sample_count = buffer->max_sample_count;
-    give_audio_buffer(audio_pool, buffer);
+    cur_buffer->sample_count += max_samples;
+
+    if(cur_buffer->sample_count == cur_buffer->max_sample_count) {
+      give_audio_buffer(audio_pool, cur_buffer);
+      cur_buffer = nullptr;
+    }
   }
 #endif
 }
