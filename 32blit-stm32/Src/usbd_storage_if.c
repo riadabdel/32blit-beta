@@ -225,7 +225,7 @@ int8_t STORAGE_GetCapacity_HS(uint8_t lun, uint32_t *block_num, uint16_t *block_
 int8_t STORAGE_IsReady_HS(uint8_t lun)
 {
   /* USER CODE BEGIN 11 */
-	if(g_usbManager.IsMSCReady())
+	if(g_usbManager.IsMSCReady() && blit_sd_detected())
 		return (USBD_OK);
 	else
 		return (USBD_FAIL);
