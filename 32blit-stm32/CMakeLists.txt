@@ -107,6 +107,7 @@ list(APPEND SOURCES
 	Src/CDCInfoHandler.cpp
 	Src/USBManager.cpp
 	Utilities/JPEG/jpeg_utils.c
+	Src/fake-fs.cpp
 )
 
 set_source_files_properties(

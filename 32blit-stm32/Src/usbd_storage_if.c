@@ -66,7 +66,7 @@ extern USBManager g_usbManager;
   * @{
   */
 
-#define STORAGE_LUN_NBR                  1
+#define STORAGE_LUN_NBR                  2
 #define STORAGE_BLK_NBR                  0x10000
 #define STORAGE_BLK_SIZ                  0x200
 
@@ -112,6 +112,20 @@ const uint8_t STORAGE_Inquirydata_HS[] = {/* 36 */
   'S', 'T', 'M', ' ', ' ', ' ', ' ', ' ', /* Manufacturer : 8 bytes */
   '3', '2', 'B', 'l', 'i', 't', ' ', 'S', /* Product      : 16 Bytes */
   'D', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
+  '0', '.', '0' ,'1',                     /* Version      : 4 Bytes */
+
+  /* LUN 1 */
+  0x00,
+  0x80,
+  0x02,
+  0x02,
+  (STANDARD_INQUIRY_DATA_LEN - 5),
+  0x00,
+  0x00,
+  0x00,
+  'S', 'T', 'M', ' ', ' ', ' ', ' ', ' ', /* Manufacturer : 8 bytes */
+  '3', '2', 'B', 'l', 'i', 't', ' ', 'F', /* Product      : 16 Bytes */
+  'l', 'a', 's', 'h', ' ', ' ', ' ', ' ',
   '0', '.', '0' ,'1'                      /* Version      : 4 Bytes */
 };
 /* USER CODE END INQUIRY_DATA_HS */
@@ -196,7 +210,17 @@ int8_t STORAGE_Init_HS(uint8_t lun)
 int8_t STORAGE_GetCapacity_HS(uint8_t lun, uint32_t *block_num, uint16_t *block_size)
 {
   /* USER CODE BEGIN 10 */
-	// get sector size and count
+
+  // flash
+  if(lun == 1)
+  {
+    *block_num = 33 * 1024 * 2; //!
+    *block_size = 512;
+    return USBD_OK;
+  }
+
+
+	// get SD sector size and count
 	DWORD sectorCount = 0;
 	WORD sectorSize = 0;
 	if (disk_ioctl(lun, GET_SECTOR_SIZE, &sectorSize) == RES_OK)
@@ -225,7 +249,11 @@ int8_t STORAGE_GetCapacity_HS(uint8_t lun, uint32_t *block_num, uint16_t *block_
 int8_t STORAGE_IsReady_HS(uint8_t lun)
 {
   /* USER CODE BEGIN 11 */
-	if(g_usbManager.IsMSCReady() && blit_sd_detected())
+
+  if(lun == 0 && !blit_sd_detected())
+    return USBD_FAIL;
+
+	if(g_usbManager.IsMSCReady())
 		return (USBD_OK);
 	else
 		return (USBD_FAIL);
@@ -241,9 +269,14 @@ int8_t STORAGE_IsReady_HS(uint8_t lun)
 int8_t STORAGE_IsWriteProtected_HS(uint8_t lun)
 {
   /* USER CODE BEGIN 12 */
+  if(lun == 1)
+    return USBD_FAIL;
+
   return (USBD_OK);
   /* USER CODE END 12 */
 }
+
+extern void fake_fs_read_sector(uint32_t sector, uint8_t *buf);
 
 /**
   * @brief  .
@@ -256,7 +289,17 @@ int8_t STORAGE_IsWriteProtected_HS(uint8_t lun)
 int8_t STORAGE_Read_HS(uint8_t lun, uint8_t *buf, uint32_t blk_addr, uint16_t blk_len)
 {
   /* USER CODE BEGIN 13 */
+
 	g_usbManager.LogActivity();
+
+  if(lun == 1) {
+    for(int i = 0; i < blk_len; i++) {
+      fake_fs_read_sector(blk_addr++, buf);
+      buf += 512;
+    }
+    return USBD_OK; // TODO?
+  }
+
   if (disk_read(lun, buf, blk_addr, blk_len) != RES_OK)
 	  return -1;
 
@@ -275,6 +318,10 @@ int8_t STORAGE_Read_HS(uint8_t lun, uint8_t *buf, uint32_t blk_addr, uint16_t bl
 int8_t STORAGE_Write_HS(uint8_t lun, uint8_t *buf, uint32_t blk_addr, uint16_t blk_len)
 {
   /* USER CODE BEGIN 14 */
+
+  if(lun)
+    return -1;
+
 	g_usbManager.LogActivity();
   if (disk_write(lun, buf, blk_addr, blk_len) != RES_OK)
 	  return -1;
