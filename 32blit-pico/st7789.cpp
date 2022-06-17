@@ -260,9 +260,9 @@ namespace st7789 {
 
     // < 15MHz
 #if OVERCLOCK_250
-    sm_config_set_clkdiv(&cfg, 17);
-#else
     sm_config_set_clkdiv(&cfg, 9);
+#else
+    sm_config_set_clkdiv(&cfg, 5);
 #endif
 
 #else // SPI
