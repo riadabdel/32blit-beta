@@ -24,7 +24,8 @@ target_sources(BlitHalPico INTERFACE
     ${CMAKE_CURRENT_LIST_DIR}/usb_descriptors.c
 )
 
-pico_generate_pio_header(BlitHalPico ${CMAKE_CURRENT_LIST_DIR}/st7789.pio)
+pico_generate_pio_header(BlitHalPico ${CMAKE_CURRENT_LIST_DIR}/st7789-spi.pio)
+pico_generate_pio_header(BlitHalPico ${CMAKE_CURRENT_LIST_DIR}/st7789-8bit.pio)
 pico_generate_pio_header(BlitHalPico ${CMAKE_CURRENT_LIST_DIR}/spi.pio)
 
 target_link_libraries(BlitHalPico INTERFACE hardware_dma hardware_pio hardware_pwm hardware_spi pico_multicore pico_stdlib pico_unique_id tinyusb_device)
