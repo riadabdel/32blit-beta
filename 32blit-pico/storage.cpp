@@ -455,7 +455,7 @@ bool storage_init() {
   // these are a little fast
   int div = 2; // 125/(2*2) = 31.25MHz
 
-#ifdef OVERCLOCK_250
+#if OVERCLOCK_250
   div *= 2;
 #endif
 
