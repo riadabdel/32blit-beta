@@ -66,6 +66,8 @@ void CDCCommandStream::Stream(void)
 
 uint8_t CDCCommandStream::Stream(uint8_t *data, uint32_t len)
 {
+  static const uint8_t header[4] = { '3', '2', 'B', 'L' };
+
 	uint8_t   *pScanPos  = data;
 
   while(pScanPos < (data+len))
@@ -75,7 +77,7 @@ uint8_t CDCCommandStream::Stream(uint8_t *data, uint32_t len)
       bool bHeaderFound = false;
       while ((!bHeaderFound) && (pScanPos < (data+len)))
       {
-        if(*pScanPos == m_header[m_uHeaderScanPos])
+        if(*pScanPos == header[m_uHeaderScanPos])
         {
           if(m_uHeaderScanPos == 3)
           {
