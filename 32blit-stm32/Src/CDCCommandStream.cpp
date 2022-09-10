@@ -23,7 +23,7 @@ void CDCCommandStream::Init(void)
 
 void CDCCommandStream::AddCommandHandler(CDCCommandHandler::CDCFourCC uCommand, CDCCommandHandler *pCommandHandler)
 {
-	m_commandHandlers[uCommand] = pCommandHandler;
+	m_commandHandlers.emplace(uCommand, pCommandHandler);
 }
 
 
@@ -136,7 +136,9 @@ uint8_t CDCCommandStream::Stream(uint8_t *data, uint32_t len)
       m_uRetryCount = 0;
       m_uDispatchTime = HAL_GetTick();
 
-      m_pCurrentCommandHandler = m_commandHandlers[uCommand];
+      auto handler = m_commandHandlers.find(uCommand);
+      m_pCurrentCommandHandler = handler == m_commandHandlers.end() ? nullptr : handler->second;
+
       if(m_pCurrentCommandHandler)
       {
         if(m_pCurrentCommandHandler->StreamInit(uCommand)) {
