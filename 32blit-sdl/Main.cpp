@@ -219,9 +219,18 @@ int main(int argc, char *argv[]) {
 	window = SDL_CreateWindow(
 		metadata_title,
 		SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+#ifdef __3DS__
+    400, 240,
+		SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_INPUT_FOCUS
+#else
 		System::width*2, System::height*2,
 		SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE
+#endif
 	);
+
+#ifdef __3DS__
+  SDL_SetHint(SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS, "1");
+#endif
 
 	if (window == nullptr) {
 		std::cerr << "could not create window: " << SDL_GetError() << std::endl;

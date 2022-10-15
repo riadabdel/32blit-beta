@@ -11,6 +11,37 @@ else()
     add_compile_options("-Wall" "-Wextra" "-Wdouble-promotion" "-Wno-unused-parameter")
 endif()
 
+if(NINTENDO_3DS)
+    include(FetchContent)
+
+    FetchContent_Declare(
+        SDL2
+        GIT_REPOSITORY https://github.com/libsdl-org/SDL
+        GIT_TAG        main
+        #GIT_TAG        release-2.24.0
+    )
+
+    set(SDL2IMAGE_SAMPLES OFF CACHE BOOL "" FORCE) # fails to find SDL2main
+
+    FetchContent_Declare(
+        SDL2_image
+        GIT_REPOSITORY https://github.com/libsdl-org/SDL_image
+        GIT_TAG        main
+        #GIT_TAG        release-2.6.2
+    )
+
+    #FetchContent_Declare(
+    #    SDL2_net
+    #    GIT_REPOSITORY https://github.com/libsdl-org/SDL_net
+    #    GIT_TAG        release-2.2.0
+    #)
+
+    FetchContent_MakeAvailable(SDL2 SDL2_image) #SDL2_net
+
+    add_library(SDL2_image::SDL2_image ALIAS SDL2_image) # static built and we only search for shared...
+    #add_library(SDL2_net::SDL2_net ALIAS SDL2_net)
+endif()
+
 find_package (32BLIT CONFIG REQUIRED PATHS .)
 add_subdirectory(examples)
 

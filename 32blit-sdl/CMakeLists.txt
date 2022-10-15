@@ -89,7 +89,14 @@ else()
 
 	# find SDL2_image
 	find_sdl_lib(SDL2_image SDL_image.h)
-	find_sdl_lib(SDL2_net SDL_net.h)
+
+	if(NINTENDO_3DS)
+		target_compile_definitions(BlitHalSDL PRIVATE -DNO_NET)
+		set(SDL2_NET_INCLUDE_DIR "")
+		set(SDL2_NET_LIBRARY "")
+	else()
+		find_sdl_lib(SDL2_net SDL_net.h)
+	endif()
 
 	target_include_directories(BlitHalSDL
 		PRIVATE	${SDL2_IMAGE_INCLUDE_DIR} ${SDL2_NET_INCLUDE_DIR}
@@ -172,7 +179,7 @@ function(blit_executable NAME SOURCES)
     		COMMAND ${CMAKE_COMMAND} -E copy_if_different
 			"${DLL}"
 			$<TARGET_FILE_DIR:${NAME}>
-		)  
+		)
 	endforeach()
 
 	if(EMSCRIPTEN)
@@ -267,4 +274,14 @@ const char *metadata_category = \"\${METADATA_CATEGORY}\";"
 	file(GENERATE OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${TARGET}_metadata.cpp CONTENT "${METADATA_CONTENT}")
 
 	target_sources(${TARGET} PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/${TARGET}_metadata.cpp)
+
+  if(NINTENDO_3DS)
+    ctr_generate_smdh(${CMAKE_CURRENT_BINARY_DIR}/${TARGET}.smdh
+      NAME ${METADATA_TITLE}
+      DESCRIPTION ${METADATA_DESCRIPTION}
+      AUTHOR ${METADATA_AUTHOR}
+    )
+
+    ctr_create_3dsx(${TARGET} SMDH ${CMAKE_CURRENT_BINARY_DIR}/${TARGET}.smdh) # this means we only output a .3dsx if there is metadata...
+  endif()
 endfunction()
