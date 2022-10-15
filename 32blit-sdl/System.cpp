@@ -87,10 +87,9 @@ static bool set_screen_mode_format(blit::ScreenMode new_mode, blit::SurfaceTempl
 }
 
 // blit timer callback
-std::chrono::steady_clock::time_point start;
+uint32_t start;
 uint32_t now() {
-	auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start);
-	return (uint32_t)elapsed.count();
+	return SDL_GetTicks() - start;
 }
 
 // blit random callback
@@ -198,7 +197,7 @@ System::~System() {
 void System::run() {
 	running = true;
 
-	start = std::chrono::steady_clock::now();
+	start = SDL_GetTicks();
 
 	blit::api.now = ::now;
 	blit::api.random = ::blit_random;
