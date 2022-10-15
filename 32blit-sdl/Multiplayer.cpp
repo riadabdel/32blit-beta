@@ -7,11 +7,14 @@
 using namespace blit;
 
 Multiplayer::Multiplayer(Mode mode, const std::string &address) : mode(mode), address(address) {
+#ifndef NO_NET
     // shouldn't fail unless we ran out of memory
     sock_set = SDLNet_AllocSocketSet(2);
+#endif
 }
 
 Multiplayer::~Multiplayer() {
+#ifndef NO_NET
     if(sock_set)
         SDLNet_FreeSocketSet(sock_set);
 
@@ -20,12 +23,16 @@ Multiplayer::~Multiplayer() {
 
     if(listen_socket)
         SDLNet_TCP_Close(listen_socket);
+#endif
 }
 
 void Multiplayer::update() {
     if(!enabled)
         return;
-  
+
+#ifdef NO_NET
+    return;
+#else
     if(!socket && !listen_socket) {
         // attempt to reconnect
         auto now = SDL_GetTicks();
@@ -138,13 +145,19 @@ void Multiplayer::update() {
           recv_buf = nullptr;
       }
     }
+#endif
 }
 
 bool Multiplayer::is_connected() const {
+#ifdef NO_NET
+    return false;
+#else
     return socket != nullptr && handshake;
+#endif
 }
 
 void Multiplayer::set_enabled(bool enabled) {
+#ifndef NO_NET
     if(enabled) {
         setup();
     } else {
@@ -157,9 +170,11 @@ void Multiplayer::set_enabled(bool enabled) {
     }
 
     this->enabled = enabled;
+#endif
 }
 
 void Multiplayer::send_message(const uint8_t *data, uint16_t length) {
+#ifndef NO_NET
     if(!socket)
         return;
 
@@ -181,9 +196,11 @@ void Multiplayer::send_message(const uint8_t *data, uint16_t length) {
         // failed
         disconnect();
     }
+#endif
 }
 
 void Multiplayer::setup() {
+#ifndef NO_NET
     const uint16_t port = 0x32B1;
 
     IPaddress ip;
@@ -217,9 +234,11 @@ void Multiplayer::setup() {
         SDLNet_TCP_AddSocket(sock_set, socket);
         mode = Mode::Connect;
     }
+#endif
 }
 
 void Multiplayer::disconnect() {
+#ifndef NO_NET
     if(!socket)
         return;
 
@@ -229,11 +248,14 @@ void Multiplayer::disconnect() {
     socket = nullptr;
 
     handshake = false;
+#endif
 }
 
 void Multiplayer::stop_listening() {
+#ifndef NO_NET
     SDLNet_TCP_DelSocket(sock_set, listen_socket);
 
     SDLNet_TCP_Close(listen_socket);
     listen_socket = nullptr;
+#endif
 }
