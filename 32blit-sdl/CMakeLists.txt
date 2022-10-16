@@ -5,10 +5,17 @@ add_library(BlitHalSDL STATIC
 	JPEG.cpp
 	Main.cpp
 	Multiplayer.cpp
-	Renderer.cpp
 	Audio.cpp
 	System.cpp
 )
+
+if(NINTENDO_3DS)
+  # really minimal renderer
+  target_compile_definitions(BlitHalSDL PRIVATE -DWINDOW_FRAMEBUFFER)
+  target_sources(BlitHalSDL PRIVATE RendererFramebuffer.cpp)
+else()
+  target_sources(BlitHalSDL PRIVATE Renderer.cpp)
+endif()
 
 function (find_sdl_lib lib_name header_name)
 	string(TOUPPER ${lib_name} VAR_PREFIX)

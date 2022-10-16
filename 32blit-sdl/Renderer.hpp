@@ -19,6 +19,10 @@ class Renderer {
 		int sys_width, sys_height;
 		int win_width, win_height;
 
+#ifdef WINDOW_FRAMEBUFFER
+    SDL_Window *window = nullptr;
+    SDL_Surface *surface = nullptr;
+#else
     bool is_lores = false;
 		Mode mode = KeepPixels;
 		SDL_Renderer *renderer = nullptr;
@@ -28,4 +32,5 @@ class Renderer {
 		SDL_Texture *fb_lores_565_texture = nullptr;
 		SDL_Texture *fb_hires_565_texture = nullptr;
 		SDL_Texture *current = nullptr;
+#endif
 };

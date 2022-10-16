@@ -319,6 +319,10 @@ Uint32 System::format() {
 	return Uint32(cur_format);
 }
 
+uint8_t *System::get_framebuffer() {
+  return framebuffer;
+}
+
 void System::update_texture(SDL_Texture *texture) {
   bool is_lores = _mode == blit::ScreenMode::lores;
   auto stride = (is_lores ? width / 2 : width) * blit::pixel_format_stride[int(cur_format)];

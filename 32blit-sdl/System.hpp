@@ -20,6 +20,8 @@ class System {
 		Uint32 mode();
     Uint32 format();
 
+    uint8_t *get_framebuffer();
+
 		void update_texture(SDL_Texture *);
 		void notify_redraw();
 
