@@ -245,7 +245,7 @@ void System::run() {
 	::init();
 #else
 	t_system_loop = SDL_CreateThread(system_loop_thread, "Loop", (void *)this);
-	t_system_timer = SDL_CreateThread(system_timer_thread, "Timer", (void *)this);
+	//t_system_timer = SDL_CreateThread(system_timer_thread, "Timer", (void *)this);
 #endif
 }
 
@@ -284,7 +284,7 @@ int System::update_thread() {
 	::init(); // Run init here because the user can make it hang.
 
 	while (true) {
-		SDL_SemWait(s_loop_update);
+		//SDL_SemWait(s_loop_update);
 		if(!running) break;
 		loop();
 		if(!running) break;
