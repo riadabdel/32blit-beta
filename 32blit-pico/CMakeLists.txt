@@ -119,7 +119,7 @@ if(BLIT_INPUT_DRIVER STREQUAL "usb_hid")
     list(APPEND BLIT_BOARD_DEFINITIONS INPUT_USB_HID)
 endif()
 
-if(BLIT_STORAGE_DRIVER STREQUAL "sd_spi")
+if(BLIT_STORAGE_DRIVER STREQUAL "sd" OR BLIT_STORAGE_DRIVER STREQUAL "sd_spi")
     list(APPEND BLIT_BOARD_DEFINITIONS STORAGE_SD)
 endif()
 
@@ -140,6 +140,7 @@ pico_sdk_init()
 pico_generate_pio_header(BlitHalPico ${CMAKE_CURRENT_LIST_DIR}/st7789-spi.pio)
 pico_generate_pio_header(BlitHalPico ${CMAKE_CURRENT_LIST_DIR}/st7789-8bit.pio)
 pico_generate_pio_header(BlitHalPico ${CMAKE_CURRENT_LIST_DIR}/spi.pio)
+pico_generate_pio_header(BlitHalPico ${CMAKE_CURRENT_LIST_DIR}/sd_card.pio)
 
 # grab a copy of PicoDVI if needed
 # also needs to be after SDK init
