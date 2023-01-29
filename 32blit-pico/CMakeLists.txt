@@ -18,7 +18,6 @@ target_sources(BlitHalPico INTERFACE
     ${CMAKE_CURRENT_LIST_DIR}/input.cpp
     ${CMAKE_CURRENT_LIST_DIR}/led.cpp
     ${CMAKE_CURRENT_LIST_DIR}/main.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/storage.cpp
     ${CMAKE_CURRENT_LIST_DIR}/st7789.cpp
     ${CMAKE_CURRENT_LIST_DIR}/usb.cpp
     ${CMAKE_CURRENT_LIST_DIR}/usb_descriptors.c
@@ -56,6 +55,7 @@ if(${PICO_BOARD} STREQUAL "vgaboard")
         STORAGE_SD
     )
     set(REQUIRE_PICO_EXTRAS TRUE) # scanvideo/audio_i2s
+    set(STORAGE_DRIVER sd_spi)
 elseif(${PICO_BOARD} STREQUAL "pimoroni_picosystem")
     message("Using picosystem...")
     target_compile_definitions(BlitHalPico INTERFACE
@@ -150,6 +150,7 @@ elseif(DEFINED PICO_ADDON)
             STORAGE_SD
         )
         set(REQUIRE_PICO_EXTRAS TRUE) # audio_i2s
+        set(STORAGE_DRIVER sd_spi)
     else()
         message(FATAL_ERROR "Unknown add-on ${PICO_ADDON}!")
     endif()
@@ -170,6 +171,15 @@ endif()
 if(REQUIRE_PICO_EXTRAS)
     include(pico_extras_import.cmake)
 endif()
+
+# default drivers
+if(NOT STORAGE_DRIVER)
+    set(STORAGE_DRIVER "flash")
+endif()
+
+target_sources(BlitHalPico INTERFACE
+    ${CMAKE_CURRENT_LIST_DIR}/storage_${STORAGE_DRIVER}.cpp
+)
 
 function(blit_executable_common NAME)
     target_link_libraries(${NAME} BlitEngine)
