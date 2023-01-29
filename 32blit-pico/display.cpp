@@ -8,6 +8,7 @@
 #include "st7789.hpp"
 #elif defined(DISPLAY_SCANVIDEO)
 #include "hardware/clocks.h"
+#include "hardware/dma.h"
 #include "pico/time.h"
 #include "pico/scanvideo.h"
 #include "pico/scanvideo/composable_scanline.h"
@@ -199,7 +200,10 @@ void init_display() {
   st7789::clear();
 
   have_vsync = st7789::vsync_callback(vsync_callback);
-
+#elif defined(DISPLAY_SCANVIDEO)
+  // channel 0 get claimed later, channel 3 doesn't get claimed, but does get used
+  // reserve them so out claims don't conflict
+  dma_claim_mask(1 << 0 | 1 << 3);
 #elif defined(DISPLAY_PICODVI)
   // assuming the default overclock hasn't been disabled, overvolt should already be set
   set_sys_clock_khz(DVI_TIMING.bit_clk_khz, true);
@@ -255,6 +259,8 @@ void update_display(uint32_t time) {
 
 void init_display_core1() {
 #ifdef DISPLAY_SCANVIDEO
+  dma_unclaim_mask(1 << 0 | 1 << 3);
+
   // no mode switching yet
 #if ALLOW_HIRES
 #if DISPLAY_HEIGHT == 160 // extra middle mode

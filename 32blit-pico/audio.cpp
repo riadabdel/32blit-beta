@@ -66,7 +66,7 @@ void init_audio() {
 #ifdef DISPLAY_PICODVI
     .dma_channel = 6,
 #else
-    .dma_channel = 1,
+    .dma_channel = 4,
 #endif
     .pio_sm = 1,
   };
