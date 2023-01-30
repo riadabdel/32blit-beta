@@ -114,7 +114,21 @@ elseif(BLIT_AUDIO_DRIVER STREQUAL "pwm")
     list(APPEND BLIT_BOARD_LIBRARIES pico_audio_pwm)
 endif()
 
-if(BLIT_DISPLAY_DRIVER STREQUAL "scanvideo")
+if(BLIT_DISPLAY_DRIVER STREQUAL "picodvi")
+    # grab a copy of PicoDVI
+    include(FetchContent)
+
+    FetchContent_Populate(picodvi
+        GIT_REPOSITORY https://github.com/Wren6991/PicoDVI
+        GIT_TAG 62a41787f881f3ad8038fb7d45335c8f457bc4a2
+    )
+    add_subdirectory(${picodvi_SOURCE_DIR}/software/libdvi ${picodvi_BINARY_DIR} EXCLUDE_FROM_ALL)
+
+    target_include_directories(BlitHalPico INTERFACE ${picodvi_SOURCE_DIR}/software/include) # common_dvi_pin_configs.h
+
+    set(BLIT_ENABLE_CORE1 TRUE)
+    list(APPEND BLIT_BOARD_LIBRARIES libdvi)
+elseif(BLIT_DISPLAY_DRIVER STREQUAL "scanvideo")
     set(BLIT_REQUIRE_PICO_EXTRAS TRUE)
     set(BLIT_ENABLE_CORE1 TRUE)
     list(APPEND BLIT_BOARD_LIBRARIES pico_scanvideo_dpi)
