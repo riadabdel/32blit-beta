@@ -115,17 +115,6 @@ elseif(BLIT_AUDIO_DRIVER STREQUAL "pwm")
 endif()
 
 if(BLIT_DISPLAY_DRIVER STREQUAL "picodvi")
-    # grab a copy of PicoDVI
-    include(FetchContent)
-
-    FetchContent_Populate(picodvi
-        GIT_REPOSITORY https://github.com/Wren6991/PicoDVI
-        GIT_TAG 62a41787f881f3ad8038fb7d45335c8f457bc4a2
-    )
-    add_subdirectory(${picodvi_SOURCE_DIR}/software/libdvi ${picodvi_BINARY_DIR} EXCLUDE_FROM_ALL)
-
-    target_include_directories(BlitHalPico INTERFACE ${picodvi_SOURCE_DIR}/software/include) # common_dvi_pin_configs.h
-
     set(BLIT_ENABLE_CORE1 TRUE)
     list(APPEND BLIT_BOARD_LIBRARIES libdvi)
 elseif(BLIT_DISPLAY_DRIVER STREQUAL "scanvideo")
@@ -160,6 +149,20 @@ pico_sdk_init()
 # generate PIO headers (has to be after SDK init)
 pico_generate_pio_header(BlitHalPico ${CMAKE_CURRENT_LIST_DIR}/st7789.pio)
 pico_generate_pio_header(BlitHalPico ${CMAKE_CURRENT_LIST_DIR}/spi.pio)
+
+# grab a copy of PicoDVI if needed
+# also needs to be after SDK init
+if(BLIT_DISPLAY_DRIVER STREQUAL "picodvi")
+    include(FetchContent)
+
+    FetchContent_Populate(picodvi
+        GIT_REPOSITORY https://github.com/Wren6991/PicoDVI
+        GIT_TAG 62a41787f881f3ad8038fb7d45335c8f457bc4a2
+    )
+    add_subdirectory(${picodvi_SOURCE_DIR}/software/libdvi ${picodvi_BINARY_DIR} EXCLUDE_FROM_ALL)
+
+    target_include_directories(BlitHalPico INTERFACE ${picodvi_SOURCE_DIR}/software/include) # common_dvi_pin_configs.h
+endif()
 
 # driver sources
 target_sources(BlitHalPico INTERFACE
