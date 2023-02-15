@@ -1,4 +1,4 @@
-#include "SDL.h"
+#include "SDL2or3.h"
 
 #include "Input.hpp"
 #include "engine/input.hpp"
@@ -32,7 +32,7 @@ std::map<int, int> Input::keys = {
 	{SDLK_1,       blit::Button::HOME},
 	{SDLK_2,       blit::Button::MENU},
 	{SDLK_3,       blit::Button::JOYSTICK},
-  
+
   {SDLK_ESCAPE,  blit::Button::MENU},
 };
 
@@ -69,8 +69,13 @@ int Input::find_button(int button) {
 
 Input::Input(System *target) : target(target) {
   // Open all joysticks as game controllers
+#ifdef SDL3
+  auto joysticks = SDL_GetJoysticks(nullptr);
+  for(int i = 0; joysticks[i]; i++) {
+    auto n = joysticks[i];
+#else
   for(int n = 0; n < SDL_NumJoysticks(); n++) {
-
+#endif
     if(SDL_IsGameController(n)) {
 
       auto gc = SDL_GameControllerOpen(n);
@@ -79,6 +84,9 @@ Input::Input(System *target) : target(target) {
       }
     }
   }
+#ifdef SDL3
+  SDL_free(joysticks);
+#endif
 }
 
 Input::~Input() {

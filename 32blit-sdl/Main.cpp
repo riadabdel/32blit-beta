@@ -6,7 +6,8 @@
 #include <emscripten/emscripten.h>
 #endif
 
-#include "SDL.h"
+#include "SDL2or3.h"
+
 #include <iostream>
 
 #include "Input.hpp"
@@ -45,12 +46,17 @@ void handle_event(SDL_Event &event) {
 			running = false;
 			break;
 
+#ifdef SDL3
+        case SDL_EVENT_WINDOW_RESIZED:
+            blit_renderer->resize(event.window.data1, event.window.data2);
+            break;
+#else
 		case SDL_WINDOWEVENT:
 			if (event.window.event == SDL_WINDOWEVENT_RESIZED) {
 				blit_renderer->resize(event.window.data1, event.window.data2);
 			}
 			break;
-
+#endif
 		case SDL_MOUSEBUTTONUP:
 		case SDL_MOUSEBUTTONDOWN:
 			blit_input->handle_mouse(event.button.button, event.type == SDL_MOUSEBUTTONDOWN, event.button.x, event.button.y);

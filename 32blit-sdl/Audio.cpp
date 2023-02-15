@@ -1,7 +1,7 @@
 #include <algorithm>
 #include <cstdio>
 #include <iostream>
-#include "SDL.h"
+#include "SDL2or3.h"
 
 #include "Audio.hpp"
 #include "audio/audio.hpp"
@@ -27,11 +27,19 @@ Audio::Audio() {
         std::cerr << "Audio Init Failed: " << SDL_GetError() << std::endl;
     }
 
+#ifdef SDL3
+    SDL_PlayAudioDevice(audio_device);
+#else
     SDL_PauseAudioDevice(audio_device, 0);
+#endif
 }
 
 Audio::~Audio() {
+#ifdef SDL3
+    SDL_PauseAudioDevice(audio_device);
+#else
     SDL_PauseAudioDevice(audio_device, 1);
+#endif
     SDL_CloseAudioDevice(audio_device);
 }
 

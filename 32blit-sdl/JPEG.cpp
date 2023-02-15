@@ -1,7 +1,11 @@
 #include <cstdint>
 
-#include "SDL.h"
+#include "SDL2or3.h"
+#ifdef SDL3
+#include "SDL2/SDL_image.h" // uh
+#else
 #include "SDL_image.h"
+#endif
 
 #include "JPEG.hpp"
 

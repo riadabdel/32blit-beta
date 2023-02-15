@@ -46,45 +46,59 @@ function (find_sdl_lib lib_name header_name)
 
 endfunction()
 
+find_package(SDL3 CONFIG COMPONENTS SDL3)
+if(SDL3_FOUND)
+    target_compile_definitions(BlitHalSDL PRIVATE SDL3)
+    set(SDL2_LIBRARIES SDL3::SDL3)
+endif()
+
 if(EMSCRIPTEN)
 	target_compile_options(BlitHalSDL
-		PRIVATE -sUSE_SDL=2 -sUSE_SDL_IMAGE=2 -sUSE_SDL_NET=2
+		PRIVATE -sUSE_SDL_IMAGE=2 -sUSE_SDL_NET=2
 	)
 
-	set(SDL2_LIBRARIES "-sUSE_SDL=2")
+    if(SDL3_FOUND)
+        target_compile_options(BlitHalSDL PRIVATE -sUSE_SDL=0)
+    else()
+        target_compile_options(BlitHalSDL PRIVATE -sUSE_SDL=2)
+	    set(SDL2_LIBRARIES "-sUSE_SDL=2")
+	endif()
+
 	set(SDL2_IMAGE_LIBRARY "-sUSE_SDL_IMAGE=2")
 	set(SDL2_NET_LIBRARY "-sUSE_SDL_NET=2")
 
 	set(EMSCRIPTEN_SHELL ${CMAKE_CURRENT_SOURCE_DIR}/emscripten-shell.html PARENT_SCOPE)
 else()
 
-	# fallback guess for SDL location on Windows
-	if(WIN32 AND NOT SDL2_DIR AND 32BLIT_DIR)
-		set(SDL2_DIR "${32BLIT_DIR}/vs/sdl")
-	endif()
+    if(NOT SDL3_FOUND)
+	    # fallback guess for SDL location on Windows
+	    if(WIN32 AND NOT SDL2_DIR AND 32BLIT_DIR)
+		    set(SDL2_DIR "${32BLIT_DIR}/vs/sdl")
+	    endif()
 
-	if(NOT TARGET SDL2::SDL2 AND NOT TARGET SDL2::SDL2-static)
-		find_package(SDL2 REQUIRED)
-	endif()
+	    if(NOT TARGET SDL2::SDL2 AND NOT TARGET SDL2::SDL2-static)
+		    find_package(SDL2 REQUIRED)
+	    endif()
 
-	if(SDL2_FRAMEWORK_PATH)
-		set(SDL2_FRAMEWORK_PATH ${SDL2_FRAMEWORK_PATH} PARENT_SCOPE)
-	endif()
+	    if(SDL2_FRAMEWORK_PATH)
+		    set(SDL2_FRAMEWORK_PATH ${SDL2_FRAMEWORK_PATH} PARENT_SCOPE)
+	    endif()
 
-	# If SDL2 was built using CMake, the generated configuration files define SDL2::* targets instead of the SDL2_* variables
-	if(TARGET SDL2::SDL2)
-		if(NOT TARGET SDL2::SDL2main)
-			add_library(SDL2::SDL2main IMPORTED INTERFACE) # 2.24.0 is missing this target for macOS
-		endif()
+	    # If SDL2 was built using CMake, the generated configuration files define SDL2::* targets instead of the SDL2_* variables
+	    if(TARGET SDL2::SDL2)
+		    if(NOT TARGET SDL2::SDL2main)
+			    add_library(SDL2::SDL2main IMPORTED INTERFACE) # 2.24.0 is missing this target for macOS
+		    endif()
 
-		set(SDL2_LIBRARIES SDL2::SDL2main SDL2::SDL2)
-	# handle SDL2 built with only a static library
-	elseif(TARGET SDL2::SDL2-static)
-		set(SDL2_LIBRARIES SDL2::SDL2main SDL2::SDL2-static)
-	else()
-		target_include_directories(BlitHalSDL
-			PRIVATE	${SDL2_INCLUDE_DIRS}
-		)
+		    set(SDL2_LIBRARIES SDL2::SDL2main SDL2::SDL2)
+	    # handle SDL2 built with only a static library
+	    elseif(TARGET SDL2::SDL2-static)
+		    set(SDL2_LIBRARIES SDL2::SDL2main SDL2::SDL2-static)
+	    else()
+		    target_include_directories(BlitHalSDL
+			    PRIVATE	${SDL2_INCLUDE_DIRS}
+		    )
+	    endif()
 	endif()
 
 	# find SDL2_image
@@ -178,7 +192,7 @@ function(blit_executable NAME SOURCES)
 	if(EMSCRIPTEN)
 		set_target_properties(${NAME} PROPERTIES
 			SUFFIX ".html"
-			LINK_FLAGS "-sENVIRONMENT=web -sSDL2_IMAGE_FORMATS=['jpg'] --shell-file ${EMSCRIPTEN_SHELL} -s'EXPORTED_RUNTIME_METHODS=[\"addRunDependency\", \"removeRunDependency\"]' -sTOTAL_STACK=1MB"
+			LINK_FLAGS "-sENVIRONMENT=web -sSDL2_IMAGE_FORMATS=['jpg'] --shell-file ${EMSCRIPTEN_SHELL} -s'EXPORTED_RUNTIME_METHODS=[\"addRunDependency\", \"removeRunDependency\"]' '-sDEFAULT_LIBRARY_FUNCS_TO_INCLUDE=[\"$autoResumeAudioContext\", \"$dynCall\"]' -sTOTAL_STACK=1MB"
 			LINK_DEPENDS ${EMSCRIPTEN_SHELL}
 		)
 

@@ -10,7 +10,7 @@
 #include <sys/stat.h>
 #endif
 
-#include "SDL.h"
+#include "SDL2or3.h"
 
 #include "File.hpp"
 #include "UserCode.hpp"
@@ -60,11 +60,15 @@ int32_t read_file(void *fh, uint32_t offset, uint32_t length, char *buffer) {
   auto file = (SDL_RWops *)fh;
 
   if(file && SDL_RWseek(file, offset, RW_SEEK_SET) != -1) {
+#ifdef SDL3
+    return SDL_RWread(file, buffer, length);
+#else
     SDL_ClearError();
     size_t bytes_read = SDL_RWread(file, buffer, 1, length);
 
     if(!SDL_GetError()[0])
       return (int32_t)bytes_read;
+#endif
   }
 
   return -1;
@@ -74,10 +78,14 @@ int32_t write_file(void *fh, uint32_t offset, uint32_t length, const char *buffe
   auto file = (SDL_RWops *)fh;
 
   if(file && SDL_RWseek(file, offset, RW_SEEK_SET) != -1) {
+#ifdef SDL3
+    return SDL_RWwrite(file, buffer, length);
+#else
     size_t bytes_written = SDL_RWwrite(file, buffer, 1, length);
 
     if(bytes_written > 0)
       return (int32_t)bytes_written;
+#endif
   }
 
   return -1;

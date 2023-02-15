@@ -2,7 +2,7 @@
 #include <cstdio>
 #include <cmath>
 #include <iostream>
-#include "SDL.h"
+#include "SDL2or3.h"
 
 #include "graphics/surface.hpp"
 
@@ -11,7 +11,12 @@
 
 Renderer::Renderer(SDL_Window *window, int width, int height) : sys_width(width), sys_height(height) {
 	//SDL_SetHint(SDL_HINT_RENDER_DRIVER, "openGL");
+#ifdef SDL3
+	renderer = SDL_CreateRenderer(window, nullptr, 0);
+#else
 	renderer = SDL_CreateRenderer(window, -1, 0);
+#endif
+
 	if (renderer == nullptr) {
 		std::cerr << "could not create renderer: " << SDL_GetError() << std::endl;
 	}
@@ -48,6 +53,15 @@ void Renderer::set_mode(Mode new_mode) {
   int w = is_lores ? sys_width / 2 : sys_width;
   int h = is_lores ? sys_height / 2 : sys_height;
 
+#ifdef SDL3
+  auto presentation = SDL_LOGICAL_PRESENTATION_MATCH;
+  if(mode == KeepPixels)
+    presentation = SDL_LOGICAL_PRESENTATION_INTEGER_SCALE;
+  else if (mode == Stretch)
+    presentation = SDL_LOGICAL_PRESENTATION_STRETCH;
+
+  SDL_SetRenderLogicalPresentation(renderer, w, h, presentation, SDL_SCALEMODE_NEAREST);
+#else
   SDL_RenderSetLogicalSize(renderer, w, h);
   SDL_RenderSetIntegerScale(renderer, (mode == KeepPixels) ? SDL_TRUE : SDL_FALSE);
 
@@ -57,6 +71,7 @@ void Renderer::set_mode(Mode new_mode) {
 
     SDL_RenderSetScale(renderer, (float)win_width / w, (float)win_height / h);
 	}
+#endif
 }
 
 void Renderer::resize(int width, int height) {
@@ -88,7 +103,12 @@ void Renderer::_render(SDL_Texture *target, SDL_Rect *destination) {
 	SDL_SetRenderTarget(renderer, target);
 	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
 	SDL_RenderClear(renderer);
+#ifdef SDL3
+  SDL_FRect f_dest{float(destination->x), float(destination->y), float(destination->w), float(destination->h)};
+  SDL_RenderTexture(renderer, current, nullptr, &f_dest);
+#else
 	SDL_RenderCopy(renderer, current, nullptr, destination);
+#endif
 }
 
 void Renderer::present() {

@@ -2,7 +2,11 @@
 #include <cstdint>
 #include <string>
 
+#ifdef SDL3
+#include "SDL2/SDL_net.h" // uh
+#else
 #include "SDL_net.h"
+#endif
 
 class Multiplayer final {
     public:
