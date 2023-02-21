@@ -8,6 +8,7 @@ add_library(BlitHalSDL STATIC
 	Renderer.cpp
 	Audio.cpp
 	System.cpp
+	UnicornMultiverse.cpp
 )
 
 function (find_sdl_lib lib_name header_name)

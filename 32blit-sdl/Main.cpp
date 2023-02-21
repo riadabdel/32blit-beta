@@ -22,6 +22,8 @@
 #include "VideoCapture.hpp"
 #endif
 
+#include "UnicornMultiverse.hpp"
+
 static bool running = true;
 
 SDL_Window* window = nullptr;
@@ -38,6 +40,8 @@ const char *launch_path = nullptr;
 VideoCapture *blit_capture;
 unsigned int last_record_startstop = 0;
 #endif
+
+static Multiverse *multiverse;
 
 void handle_event(SDL_Event &event) {
 	switch (event.type) {
@@ -108,6 +112,9 @@ void handle_event(SDL_Event &event) {
 				blit_renderer->update(blit_system);
 				blit_system->notify_redraw();
 				blit_renderer->present();
+
+        multiverse->update(blit_renderer);
+
 #ifdef VIDEO_CAPTURE
 				if (blit_capture->recording()) blit_capture->capture(blit_renderer);
 #endif
@@ -243,6 +250,8 @@ int main(int argc, char *argv[]) {
 	blit_capture = new VideoCapture(argv[0]);
 #endif
 
+  multiverse = new Multiverse();
+
 	blit_system->run();
 
 #ifdef __EMSCRIPTEN__
@@ -259,6 +268,8 @@ int main(int argc, char *argv[]) {
 		std::cerr << "Main loop exited with error: " << SDL_GetError() << std::endl;
 		running = false; // ensure timer thread quits
 	}
+
+  delete multiverse;
 
 #ifdef VIDEO_CAPTURE
 	if (blit_capture->recording()) blit_capture->stop();
