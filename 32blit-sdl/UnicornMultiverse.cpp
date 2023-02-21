@@ -12,10 +12,10 @@
 #include "Renderer.hpp"
 
 Multiverse::Multiverse() : bounds(0, 0) {
-  displays.emplace_back("/dev/serial/by-id/usb-Raspberry_Pi_Picoprobe_E6614C311B81A836-if00", blit::Rect{0, 0, 53, 11});
+  displays.emplace_back(new Display("/dev/serial/by-id/usb-Raspberry_Pi_Picoprobe_E6614C311B81A836-if00", blit::Rect{0, 0, 53, 11}));
 
   for(auto &display : displays) {
-    auto max = display.get_rect().br();
+    auto max = display->get_rect().br();
 
     if(max.x > bounds.w)
       bounds.w = max.x;
@@ -30,7 +30,7 @@ void Multiverse::update(Renderer *source) {
   source->read_pixels(bounds.w, bounds.h, SDL_PIXELFORMAT_RGB888, buf);
 
   for(auto &display : displays)
-    display.update(buf, bounds);
+    display->update(buf, bounds);
 }
 
 Multiverse::SerialPort::SerialPort(const std::string &port_name) {
@@ -81,11 +81,12 @@ void Multiverse::SerialPort::write(const uint8_t *buf, size_t len) {
 }
 
 Multiverse::Display::Display(const std::string &port_name, blit::Rect rect) : port(port_name), rect(rect) {
-  thread = SDL_CreateThread(static_thread_run, "MultiverseDisplay", this);
   write_sem = SDL_CreateSemaphore(0);
   done_sem = SDL_CreateSemaphore(0);
 
   buf = new uint8_t[rect.size().area() * 4];
+
+  thread = SDL_CreateThread(static_thread_run, "MultiverseDisplay", this);
 }
 
 void Multiverse::Display::update(const uint8_t *buf, blit::Size bounds) {

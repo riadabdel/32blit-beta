@@ -29,6 +29,7 @@ class Multiverse {
     class Display {
       public:
         Display(const std::string &port_name, blit::Rect rect);
+        Display(Display &) = delete;
 
         void update(const uint8_t *buf, blit::Size bounds);
 
@@ -46,7 +47,7 @@ class Multiverse {
         uint8_t *buf;
     };
 
-    std::vector<Display> displays;
+    std::vector<Display *> displays;
     blit::Size bounds;
 
     uint8_t *buf;
