@@ -12,7 +12,6 @@ else()
 endif()
 
 find_package (32BLIT CONFIG REQUIRED PATHS .)
-add_subdirectory(examples)
 
 add_subdirectory(launcher-shared)
 
