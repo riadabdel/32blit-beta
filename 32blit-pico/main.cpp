@@ -30,6 +30,12 @@ const unsigned int game_block_size = 64 * 1024; // this is the 32blit's flash er
 
 static blit::AudioChannel channels[CHANNEL_COUNT];
 
+// blit API
+namespace blit {
+  API real_api;
+  API &api = real_api;
+}
+
 static uint32_t now() {
   return to_ms_since_boot(get_absolute_time());
 }
