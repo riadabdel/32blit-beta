@@ -15,6 +15,12 @@
 
 extern Input *blit_input;
 
+// blit API
+namespace blit {
+  API real_api;
+  API &api = real_api;
+}
+
 // blit framebuffer memory
 static uint8_t framebuffer[System::width * System::height * 3];
 static blit::Pen palette[256];
