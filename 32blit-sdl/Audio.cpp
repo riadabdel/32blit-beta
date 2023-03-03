@@ -7,6 +7,8 @@
 #include "audio/audio.hpp"
 #include "engine/api_private.hpp"
 
+static void _audio_callback(void *userdata, uint8_t *stream, int len);
+
 Audio::Audio() {
     SDL_AudioSpec desired = {}, audio_spec = {};
 
@@ -31,7 +33,7 @@ Audio::~Audio() {
     SDL_CloseAudioDevice(audio_device);
 }
 
-void _audio_bufferfill(short *buffer, int buffer_size){
+static void _audio_bufferfill(short *buffer, int buffer_size){
     memset(buffer, 0, buffer_size);
 
     for(auto sample = 0; sample < buffer_size; sample++){
@@ -39,6 +41,6 @@ void _audio_bufferfill(short *buffer, int buffer_size){
     }
 }
 
-void _audio_callback(void *userdata, uint8_t *stream, int len){
+static void _audio_callback(void *userdata, uint8_t *stream, int len){
     _audio_bufferfill((short *)stream, len / 2);
 }
