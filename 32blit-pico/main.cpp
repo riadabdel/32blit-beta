@@ -2,6 +2,7 @@
 #include <cstring>
 
 #include "hardware/structs/rosc.h"
+#include "hardware/structs/scb.h"
 #include "hardware/vreg.h"
 #include "pico/binary_info.h"
 #include "pico/multicore.h"
@@ -23,6 +24,8 @@
 #include "engine/api_private.hpp"
 
 using namespace blit;
+
+const unsigned int game_block_size = 64 * 1024; // this is the 32blit's flash erase size, some parts of the API depend on this...
 
 static blit::AudioChannel channels[CHANNEL_COUNT];
 
@@ -98,9 +101,35 @@ static GameMetadata get_metadata() {
   return ret;
 }
 
-static void list_installed_games(std::function<void(const uint8_t *, uint32_t, uint32_t)> callback) {
-  const unsigned int game_block_size = 64 * 1024; // this is the 32blit's flash erase size, some parts of the API depend on this...
+static bool launch(const char *path) {
+  if(strncmp(path, "flash:/", 7) == 0) {
+    int offset = atoi(path + 7) * game_block_size;
 
+    // TODO: check valid
+    auto addr = XIP_BASE + offset + 256;
+
+    // disable all irqs
+    irq_set_mask_enabled(~0u, false);
+
+    // set VTOR
+    scb_hw->vtor = addr;
+
+    asm volatile(
+      "ldr r0, [%0]\n"
+      "ldr r1, [%0, #4]\n"
+      "msr msp, r0\n" // set SP
+      "bx r1" // branch to reset
+      :
+      : "r" (addr)
+      : "r0", "r1"
+    );
+    // not reached
+  }
+
+  return false;
+}
+
+static void list_installed_games(std::function<void(const uint8_t *, uint32_t, uint32_t)> callback) {
   for(uint32_t off = 0; off < PICO_FLASH_SIZE_BYTES;) {
     auto header = (BlitGameHeader *)(XIP_NOCACHE_NOALLOC_BASE + off);
 
@@ -195,7 +224,7 @@ int main() {
   // api.decode_jpeg_file = ::decode_jpeg_file;
 
   // launcher
-  // api.launch = ::launch;
+  api.launch = ::launch;
   // api.erase_game = ::erase_game;
   // api.get_type_handler_metadata = ::get_type_handler_metadata;
   api.list_installed_games = ::list_installed_games;
