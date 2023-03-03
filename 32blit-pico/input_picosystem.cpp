@@ -56,12 +56,12 @@ void init_input() {
 void update_input() {
   using namespace blit;
 
-  api.buttons = (get_button(ButtonIO::LEFT)  ? uint32_t(Button::DPAD_LEFT) : 0)
-              | (get_button(ButtonIO::RIGHT) ? uint32_t(Button::DPAD_RIGHT) : 0)
-              | (get_button(ButtonIO::UP)    ? uint32_t(Button::DPAD_UP) : 0)
-              | (get_button(ButtonIO::DOWN)  ? uint32_t(Button::DPAD_DOWN) : 0)
-              | (get_button(ButtonIO::A)     ? uint32_t(Button::A) : 0)
-              | (get_button(ButtonIO::B)     ? uint32_t(Button::B) : 0)
-              | (get_button(ButtonIO::X)     ? uint32_t(Button::X) : 0)
-              | (get_button(ButtonIO::Y)     ? uint32_t(Button::Y) : 0);
+  api_data.buttons = (get_button(ButtonIO::LEFT)  ? uint32_t(Button::DPAD_LEFT) : 0)
+                   | (get_button(ButtonIO::RIGHT) ? uint32_t(Button::DPAD_RIGHT) : 0)
+                   | (get_button(ButtonIO::UP)    ? uint32_t(Button::DPAD_UP) : 0)
+                   | (get_button(ButtonIO::DOWN)  ? uint32_t(Button::DPAD_DOWN) : 0)
+                   | (get_button(ButtonIO::A)     ? uint32_t(Button::A) : 0)
+                   | (get_button(ButtonIO::B)     ? uint32_t(Button::B) : 0)
+                   | (get_button(ButtonIO::X)     ? uint32_t(Button::X) : 0)
+                   | (get_button(ButtonIO::Y)     ? uint32_t(Button::Y) : 0);
 }
