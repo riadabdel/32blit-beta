@@ -192,7 +192,7 @@ function(blit_executable NAME)
     blit_executable_args(${ARGN})
 
     add_library(${NAME} STATIC ${SOURCES})
-    target_link_libraries(${NAME} BlitHalPico BlitEngine)
+    target_link_libraries(${NAME} BlitHalPico BlitEngine LauncherShared)
     target_link_options(${NAME} PUBLIC -specs=nano.specs -u _printf_float)
 
     # standalone .uf2

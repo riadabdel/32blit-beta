@@ -1,4 +1,5 @@
 #include <cstdio>
+#include <cstring>
 
 #include "hardware/structs/rosc.h"
 #include "hardware/vreg.h"
@@ -16,6 +17,8 @@
 #include "led.hpp"
 #include "multiplayer.hpp"
 #include "usb.hpp"
+
+#include "executable.hpp"
 
 #include "engine/api_private.hpp"
 
@@ -97,6 +100,36 @@ static GameMetadata get_metadata() {
   return ret;
 }
 
+static void list_installed_games(std::function<void(const uint8_t *, uint32_t, uint32_t)> callback) {
+  const unsigned int game_block_size = 64 * 1024; // this is the 32blit's flash erase size, some parts of the API depend on this...
+
+  for(uint32_t off = 0; off < PICO_FLASH_SIZE_BYTES;) {
+    auto header = (BlitGameHeader *)(XIP_NOCACHE_NOALLOC_BASE + off);
+
+    // check header magic
+    if(header->magic != blit_game_magic) {
+      off += game_block_size;
+      continue;
+    }
+
+    auto size = header->end;
+
+    // check metadata
+    auto meta_offset = off + size;
+    if(memcmp((char *)(XIP_NOCACHE_NOALLOC_BASE + meta_offset), "BLITMETA", 8) != 0) {
+      off += ((size - 1) / game_block_size + 1) * game_block_size;
+      continue;
+    }
+
+    // add metadata size
+    size += *(uint16_t *)(XIP_NOCACHE_NOALLOC_BASE + meta_offset + 8) + 10;
+
+    callback((const uint8_t *)(XIP_NOCACHE_NOALLOC_BASE + off), off / game_block_size, size);
+
+    off += ((size - 1) / game_block_size + 1) * game_block_size;
+  }
+}
+
 // user funcs
 void init();
 void render(uint32_t);
@@ -167,6 +200,7 @@ int main() {
   // api.launch = ::launch;
   // api.erase_game = ::erase_game;
   // api.get_type_handler_metadata = ::get_type_handler_metadata;
+  api.list_installed_games = ::list_installed_games;
 
   api.get_launch_path = ::get_launch_path;
 
