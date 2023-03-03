@@ -54,6 +54,7 @@ SECTIONS
 
     .header : {
         KEEP (*(.header))
+        . = ALIGN(256);
     } > FLASH
 
     /* The second stage will always enter the image at the start of .text.
