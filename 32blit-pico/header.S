@@ -7,5 +7,5 @@
 .word 0 // render
 .word 0 // tick
 .word 0 // init
-.word __flash_binary_end
+.word __flash_binary_size
 .word __flash_binary_start // unused
