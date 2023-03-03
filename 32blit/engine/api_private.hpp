@@ -53,18 +53,13 @@ namespace blit {
     Pen *palette = nullptr;
   };
 
+
   #pragma pack(push, 4)
-  struct API {
+  struct APIConst {
     uint16_t version_major;
     uint16_t version_minor;
 
-    ButtonState buttons;
-    float hack_left;
-    float hack_right;
-    float vibration;
-    Vec2 joystick;
-    Vec3 tilt;
-    Pen LED;
+    uint8_t pad[48]; // was data
 
     AudioChannel *channels;
 
@@ -112,21 +107,21 @@ namespace blit {
     bool (*is_multiplayer_connected)();
     void (*set_multiplayer_enabled)(bool enabled);
     void (*send_message)(const uint8_t *data, uint16_t len);
-    void (*message_received)(const uint8_t *data, uint16_t len); // set by user
+    uintptr_t pad2; // was message_recieved
 
     const uint8_t *(*flash_to_tmp)(const std::string &filename, uint32_t &size);
     void (*tmp_file_closed)(const uint8_t *ptr);
 
     GameMetadata (*get_metadata)();
 
-    bool tick_function_changed;
+    uint8_t pad3; // was data
 
     bool (*set_screen_mode_format)(ScreenMode new_mode, SurfaceTemplate &new_surf_template);
 
     // raw i2c access
     bool (*i2c_send)(uint8_t address, uint8_t reg, const uint8_t *data, uint16_t len);
     bool (*i2c_receive)(uint8_t address, uint8_t reg, uint8_t *data, uint16_t len);
-    void (*i2c_completed)(uint8_t address, uint8_t reg, const uint8_t *data, uint16_t len); // callback when done
+    uintptr_t pad4; // was i2c_completed
 
     // raw cdc
     bool (*set_raw_cdc_enabled)(bool enabled);
@@ -136,7 +131,39 @@ namespace blit {
     // another launcher API
     void (*list_installed_games)(std::function<void(const uint8_t *, uint32_t, uint32_t)> callback);
   };
+
+  struct APIData {
+    uint16_t pad[2];
+
+    ButtonState buttons;
+    float hack_left;
+    float hack_right;
+    float vibration;
+    Vec2 joystick;
+    Vec3 tilt;
+    Pen LED;
+
+    uintptr_t pad2[32];
+
+    // multiplayer
+    void (*message_received)(const uint8_t *data, uint16_t len); // set by user
+
+    uintptr_t pad3[3];
+
+    bool tick_function_changed;
+
+    uintptr_t pad4[3];
+
+    // raw i2c access
+    void (*i2c_completed)(uint8_t address, uint8_t reg, const uint8_t *data, uint16_t len); // callback when done
+
+    uintptr_t pad5[4];
+  };
+
   #pragma pack(pop)
 
-  extern API &api;
+  static_assert(sizeof(APIConst) == sizeof(APIData));
+
+  extern const APIConst &api;
+  extern APIData &api_data;
 }
