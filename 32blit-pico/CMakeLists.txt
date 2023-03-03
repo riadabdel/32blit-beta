@@ -186,7 +186,7 @@ endfunction()
 function(blit_executable_int_flash NAME SOURCES)
     message(STATUS "Processing ${NAME}")
     add_library(${NAME} STATIC ${SOURCES} ${ARGN})
-    target_link_libraries(${NAME} BlitHalPico BlitEngine)
+    target_link_libraries(${NAME} BlitHalPico BlitEngine LauncherShared)
     target_link_options(${NAME} PUBLIC -specs=nano.specs -u _printf_float)
 
     # standalone .uf2
