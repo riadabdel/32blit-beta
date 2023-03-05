@@ -238,6 +238,7 @@ SECTIONS
     } > SCRATCH_Y
 
     .flash_end : {
+        LONG(0x12345678) /*workaround for __flash_binary_end pointing past the end*/
         __flash_binary_end = .;
     } > FLASH
 
