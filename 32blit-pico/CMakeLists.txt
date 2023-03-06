@@ -294,3 +294,5 @@ function(blit_metadata TARGET FILE)
     set_property(TARGET ${TARGET}-bl APPEND PROPERTY LINK_DEPENDS ${FILE} ${METADATA_DEPENDS})
 
 endfunction()
+
+add_subdirectory(loader)
