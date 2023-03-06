@@ -183,7 +183,7 @@ function(blit_executable_common NAME)
 
 endfunction()
 
-function(blit_executable_int_flash NAME SOURCES)
+function(blit_executable NAME SOURCES)
     message(STATUS "Processing ${NAME}")
     add_library(${NAME} STATIC ${SOURCES} ${ARGN})
     target_link_libraries(${NAME} BlitHalPico BlitEngine LauncherShared)
@@ -229,8 +229,8 @@ function(blit_executable_int_flash NAME SOURCES)
     )
 endfunction()
 
-function(blit_executable NAME SOURCES)
-    blit_executable_int_flash(${NAME} ${SOURCES} ${ARGN})
+function(blit_executable_int_flash NAME SOURCES)
+    blit_executable(${NAME} ${SOURCES} ${ARGN})
 endfunction()
 
 function(blit_metadata TARGET FILE)
