@@ -43,7 +43,13 @@ target_sources(BlitHalPico INTERFACE
     ${CMAKE_CURRENT_LIST_DIR}/usb_descriptors.c
 )
 
-target_link_libraries(BlitHalPico INTERFACE hardware_dma hardware_pio hardware_pwm hardware_spi pico_multicore pico_stdlib pico_unique_id pico_rand tinyusb_device)
+target_link_libraries(BlitHalPico INTERFACE
+    hardware_dma hardware_pio hardware_pwm hardware_spi
+    pico_multicore pico_stdlib pico_unique_id pico_rand
+    tinyusb_device
+    LauncherShared
+)
+
 target_include_directories(BlitHalPico INTERFACE
     ${CMAKE_CURRENT_LIST_DIR} # for tusb_config
     ${CMAKE_CURRENT_LIST_DIR}/../3rd-party/fatfs
@@ -179,14 +185,14 @@ set(HEADER_SRC ${CMAKE_CURRENT_LIST_DIR}/header.S PARENT_SCOPE)
 
 # functions
 function(blit_executable_common NAME)
-    target_link_libraries(${NAME} BlitEngine)
+    target_link_libraries(${NAME} BlitHalPico BlitEngine)
 
 endfunction()
 
 function(blit_executable NAME SOURCES)
     message(STATUS "Processing ${NAME}")
     add_library(${NAME} STATIC ${SOURCES} ${ARGN})
-    target_link_libraries(${NAME} BlitHalPico BlitEngine LauncherShared)
+    target_link_libraries(${NAME} BlitHalPico BlitEngine)
     target_link_options(${NAME} PUBLIC -specs=nano.specs -u _printf_float)
 
     # standalone .uf2
