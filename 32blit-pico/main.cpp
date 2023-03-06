@@ -159,6 +159,7 @@ static void list_installed_games(std::function<void(const uint8_t *, uint32_t, u
 
 
 // blit API
+[[gnu::section(".rodata.api_const")]]
 static const blit::APIConst blit_api_const {
   blit::api_version_major, blit::api_version_minor,
 
@@ -220,6 +221,7 @@ static const blit::APIConst blit_api_const {
   ::list_installed_games, // list_installed_games
 };
 
+[[gnu::section(".bss.api_data")]]
 static blit::APIData blit_api_data;
 
 namespace blit {
