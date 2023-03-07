@@ -9,7 +9,13 @@
 static const int lores_page_size = (DISPLAY_WIDTH / 2) * ((DISPLAY_HEIGHT + 1) / 2) * 2;
 
 extern blit::ScreenMode cur_screen_mode;
+
+#ifdef BUILD_LOADER
+extern uint16_t *screen_fb;
+#else
 extern uint16_t screen_fb[];
+#endif
+
 extern uint16_t *screen_palette565;
 
 inline int get_display_page_size() {
@@ -33,3 +39,5 @@ blit::SurfaceInfo &set_screen_mode(blit::ScreenMode mode);
 bool set_screen_mode_format(blit::ScreenMode new_mode, blit::SurfaceTemplate &new_surf_template);
 
 void set_screen_palette(const blit::Pen *colours, int num_cols);
+
+void set_framebuffer(uint8_t *data, uint32_t max_size);
