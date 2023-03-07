@@ -138,6 +138,9 @@ namespace blit {
 
     // another launcher API
     void (*list_installed_games)(std::function<void(const uint8_t *, uint32_t, uint32_t)> callback);
+
+    // low level framebuffer
+    uint8_t *(*get_screen_data)(); // used to get current screen.data before render if firmware does page-flipping
   };
 
   struct APIData {
@@ -165,7 +168,7 @@ namespace blit {
     // raw i2c access
     void (*i2c_completed)(uint8_t address, uint8_t reg, const uint8_t *data, uint16_t len); // callback when done
 
-    COMPAT_PAD(uintptr_t, pad5, 4);
+    COMPAT_PAD(uintptr_t, pad5, 5);
   };
 
   #pragma pack(pop)
