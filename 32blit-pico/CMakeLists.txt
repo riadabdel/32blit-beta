@@ -178,6 +178,8 @@ endif()
 target_compile_definitions(BlitHalPico INTERFACE ${BLIT_BOARD_DEFINITIONS})
 target_link_libraries(BlitHalPico INTERFACE ${BLIT_BOARD_LIBRARIES})
 
+set(BLIT_BOARD_DEFINITIONS ${BLIT_BOARD_DEFINITIONS} PARENT_SCOPE)
+
 # some file paths we need later
 set(LINKER_SCRIPT ${CMAKE_CURRENT_LIST_DIR}/memmap_blit.ld PARENT_SCOPE)
 set(HEADER_SRC ${CMAKE_CURRENT_LIST_DIR}/header.S ${CMAKE_CURRENT_LIST_DIR}/startup.cpp PARENT_SCOPE)
@@ -206,6 +208,7 @@ function(blit_executable NAME)
 
     # loadable .blit
     add_executable(${NAME}-bl)
+    target_compile_definitions(${NAME}-bl PRIVATE ${BLIT_BOARD_DEFINITIONS}) # need these for framebuffer config
     target_compile_options(${NAME}-bl PRIVATE -ffunction-sections -fdata-sections)
     target_link_libraries(${NAME}-bl ${NAME} pico_bit_ops pico_cxx_options pico_divider pico_double pico_int64_ops pico_float pico_malloc pico_mem_ops)
     target_link_options(${NAME}-bl PRIVATE --specs=nosys.specs LINKER:--script=${LINKER_SCRIPT} LINKER:--gc-sections)
