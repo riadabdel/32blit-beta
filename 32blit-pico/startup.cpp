@@ -1,6 +1,18 @@
 #include "engine/engine.hpp"
 #include "engine/api_private.hpp"
 
+#include "config.h"
+
+#if ALLOW_HIRES
+static uint16_t screen_fb[DISPLAY_WIDTH * DISPLAY_HEIGHT];
+#else
+// height rounded up to handle the 135px display
+// this is in bytes
+static const int lores_page_size = (DISPLAY_WIDTH / 2) * ((DISPLAY_HEIGHT + 1) / 2) * 2;
+
+static uint16_t screen_fb[lores_page_size]; // double-buffered
+#endif
+
 extern void init();
 extern void update(uint32_t time);
 extern void render(uint32_t time);
@@ -42,6 +54,8 @@ extern "C" bool do_init() {
 
   blit::update = update;
   blit::render = render;
+
+  blit::api.set_framebuffer((uint8_t *)screen_fb, sizeof(screen_fb));
 
   blit::set_screen_mode(blit::ScreenMode::lores);
 
