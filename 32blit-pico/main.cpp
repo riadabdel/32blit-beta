@@ -175,6 +175,9 @@ static void list_installed_games(std::function<void(const uint8_t *, uint32_t, u
   }
 }
 
+static uint8_t *get_screen_data() {
+  return screen.data;
+}
 
 // blit API
 [[gnu::section(".rodata.api_const")]]
@@ -236,7 +239,9 @@ static const blit::APIConst blit_api_const {
   nullptr, // cdc_write
   nullptr, // cdc_read
 
-  ::list_installed_games, // list_installed_games
+  ::list_installed_games,
+
+  ::get_screen_data
 };
 
 [[gnu::section(".bss.api_data")]]
