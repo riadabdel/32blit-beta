@@ -121,6 +121,7 @@ void set_screen_palette(const Pen *colours, int num_cols) {
 void set_framebuffer(uint8_t *data, uint32_t max_size) {
 #ifdef BUILD_LOADER
   screen_fb = (uint16_t *)data;
+  screen.data = data;
   max_fb_size = max_size;
 #endif
 }
