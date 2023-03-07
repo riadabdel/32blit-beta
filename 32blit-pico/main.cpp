@@ -241,7 +241,8 @@ static const blit::APIConst blit_api_const {
 
   ::list_installed_games,
 
-  ::get_screen_data
+  ::get_screen_data,
+  ::set_framebuffer,
 };
 
 [[gnu::section(".bss.api_data")]]
