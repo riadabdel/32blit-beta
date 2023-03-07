@@ -8,10 +8,15 @@ using namespace blit;
 
 static SurfaceInfo cur_surf_info;
 
-#if ALLOW_HIRES
+#ifdef BUILD_LOADER
+uint16_t *screen_fb = nullptr;
+static uint32_t max_fb_size = 0;
+#elif ALLOW_HIRES
 uint16_t screen_fb[DISPLAY_WIDTH * DISPLAY_HEIGHT];
+static const uint32_t max_fb_size = sizeof(screen_fb);
 #else
 uint16_t screen_fb[lores_page_size]; // double-buffered
+static const uint32_t max_fb_size = sizeof(screen_fb);
 #endif
 
 static Pen *screen_palette = nullptr;
@@ -60,14 +65,12 @@ bool set_screen_mode_format(ScreenMode new_mode, SurfaceTemplate &new_surf_templ
     case ScreenMode::hires:
     case ScreenMode::hires_palette:
       new_surf_template.bounds = hires_screen_size;
-#if ALLOW_HIRES
       break;
-#else
-      // can squeeze single-buffered hires paletted into the double-buffered lores fb
-      if(new_surf_template.format != PixelFormat::P)
-        return false;
-#endif
   }
+
+  // check the framebuffer is large enough for mode
+  if(max_fb_size < uint32_t(new_surf_template.bounds.area()) * pixel_format_stride[int(new_surf_template.format)])
+    return false;
 
   if(new_surf_template.format == PixelFormat::P) {
 #ifndef DISPLAY_SCANVIDEO
@@ -93,4 +96,11 @@ void set_screen_palette(const Pen *colours, int num_cols) {
 
   for(int i = 0; i < num_cols; i++)
     screen_palette565[i] = (colours[i].r >> 3) | ((colours[i].g >> 2) << 5) | ((colours[i].b >> 3) << 11);
+}
+
+void set_framebuffer(uint8_t *data, uint32_t max_size) {
+#ifdef BUILD_LOADER
+  screen_fb = (uint16_t *)data;
+  max_fb_size = max_size;
+#endif
 }
