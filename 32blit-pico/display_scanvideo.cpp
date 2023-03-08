@@ -20,7 +20,7 @@ static void fill_scanline_buffer(struct scanvideo_scanline_buffer *buffer) {
     0x0000u | (COMPOSABLE_EOL_ALIGN << 16)
   };
 
-  int w = screen.bounds.w;
+  int w = cur_screen_mode == ScreenMode::lores ? DISPLAY_WIDTH / 2 : DISPLAY_WIDTH;
 
   buffer->data[0] = 4;
   buffer->data[1] = host_safe_hw_ptr(buffer->data + 8);
@@ -84,7 +84,7 @@ void update_display_core1() {
     fill_scanline_buffer(buffer);
     scanvideo_end_scanline_generation(buffer);
 
-    const int height = screen.bounds.h;
+    const int height = cur_screen_mode == ScreenMode::lores ? DISPLAY_HEIGHT / 2 : DISPLAY_HEIGHT;
 
     if(scanvideo_scanline_number(buffer->scanline_id) == height - 1 && !do_render) {
       // swap buffers at the end of the frame, but don't start a render yet
