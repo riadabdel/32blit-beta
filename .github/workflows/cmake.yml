@@ -164,7 +164,7 @@ jobs:
     - name: Strip SDL
       if: runner.os == 'macOS'
       working-directory: ${{runner.workspace}}/build
-      run: find . -wholename "*.framework/**SDL2*" -exec strip "{}" \;
+      run: find . -wholename "*.framework/**SDL2*" -exec strip -S "{}" \;
 
     - name: Upload Artifact
       if: github.event_name != 'release'
