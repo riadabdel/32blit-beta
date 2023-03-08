@@ -78,6 +78,9 @@ void init_display_core1() {
 }
 
 void update_display_core1() {
+  if(!screen_fb)
+    return;
+
   struct scanvideo_scanline_buffer *buffer = scanvideo_begin_scanline_generation(true);
 
   while (buffer) {
