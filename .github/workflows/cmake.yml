@@ -161,6 +161,11 @@ jobs:
       run: |
         cmake --build . --config $BUILD_TYPE --target install
 
+    - name: Strip SDL
+      if: runner.os == 'macOS'
+      working-directory: ${{runner.workspace}}/build
+      run: find . -wholename "*.framework/**SDL2*" -exec strip "{}" \;
+
     - name: Upload Artifact
       if: github.event_name != 'release'
       uses: actions/upload-artifact@v3
