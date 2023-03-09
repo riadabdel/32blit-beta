@@ -1,3 +1,5 @@
+#include "engine/api_version.h"
+
 .cpu cortex-m0
 .thumb
 
@@ -8,6 +10,9 @@
 .word _ZN4blit4tickEm // tick
 .word _entry_point // init
 .word __flash_binary_size
+.word 2 // device_id = 2 + padding
+.hword BLIT_API_VERSION_MAJOR
+.hword BLIT_API_VERSION_MINOR
 .word __flash_binary_start // unused
 
 .section .rodata, "a"
