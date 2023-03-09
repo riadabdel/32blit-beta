@@ -112,8 +112,8 @@ static bool launch(const char *path) {
     uint32_t offset = atoi(path + 7) * game_block_size;
 
     auto header = (BlitGameHeader *)(XIP_NOCACHE_NOALLOC_BASE + offset);
-    // check header magic
-    if(header->magic != blit_game_magic)
+    // check header magic + device
+    if(header->magic != blit_game_magic || header->device_id != BlitDevice::RP2040)
       return false;
 
     if(header->init) {
@@ -162,8 +162,8 @@ static void list_installed_games(std::function<void(const uint8_t *, uint32_t, u
   for(uint32_t off = 0; off < PICO_FLASH_SIZE_BYTES;) {
     auto header = (BlitGameHeader *)(XIP_NOCACHE_NOALLOC_BASE + off);
 
-    // check header magic
-    if(header->magic != blit_game_magic) {
+    // check header magic + device
+    if(header->magic != blit_game_magic || header->device_id != BlitDevice::RP2040) {
       off += game_block_size;
       continue;
     }
