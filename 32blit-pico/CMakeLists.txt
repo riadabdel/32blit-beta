@@ -237,7 +237,7 @@ function(blit_executable NAME)
         COMMAND cp ${BIN_NAME} ${BLIT_FILENAME}
     )
 
-    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${NAME}-standalone.uf2
+    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${NAME}-standalone.uf2 ${CMAKE_CURRENT_BINARY_DIR}/${BLIT_FILENAME}
         DESTINATION bin
     )
 endfunction()
