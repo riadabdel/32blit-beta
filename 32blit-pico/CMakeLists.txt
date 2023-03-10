@@ -182,7 +182,7 @@ set(BLIT_BOARD_DEFINITIONS ${BLIT_BOARD_DEFINITIONS} PARENT_SCOPE)
 
 # some file paths we need later
 set(LINKER_SCRIPT ${CMAKE_CURRENT_LIST_DIR}/memmap_blit.ld PARENT_SCOPE)
-set(HEADER_SRC ${CMAKE_CURRENT_LIST_DIR}/header.S ${CMAKE_CURRENT_LIST_DIR}/startup.cpp PARENT_SCOPE)
+set(STARTUP_SRC ${CMAKE_CURRENT_LIST_DIR}/startup.S ${CMAKE_CURRENT_LIST_DIR}/startup.cpp PARENT_SCOPE)
 
 # functions
 function(blit_executable_common NAME)
@@ -214,7 +214,7 @@ function(blit_executable NAME)
     target_link_options(${NAME}-bl PRIVATE --specs=nosys.specs LINKER:--script=${LINKER_SCRIPT} LINKER:--gc-sections)
     set_property(TARGET ${NAME}-bl APPEND PROPERTY LINK_DEPENDS ${LINKER_SCRIPT})
 
-    target_sources(${NAME}-bl PRIVATE ${HEADER_SRC})
+    target_sources(${NAME}-bl PRIVATE ${STARTUP_SRC})
 
     pico_enable_stdio_uart(${NAME}-bl 1)
     pico_enable_stdio_usb(${NAME}-bl 0)
