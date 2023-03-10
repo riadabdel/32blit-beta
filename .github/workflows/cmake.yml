@@ -50,7 +50,7 @@ jobs:
           - os: macos-latest
             name: macOS
             cache-key: macos
-            artifact-suffix: macOS
+            release-suffix: macOS
             cmake-args: -DCMAKE_OSX_ARCHITECTURES=x86_64\;arm64 -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
 
           - os: windows-latest
