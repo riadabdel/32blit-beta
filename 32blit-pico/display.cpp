@@ -53,8 +53,6 @@ SurfaceInfo &set_screen_mode(ScreenMode mode) {
   // may fail for hires/palette
   if(set_screen_mode_format(mode, temp)) {
     cur_surf_info.data = temp.data;
-    cur_surf_info.bounds = temp.bounds;
-    cur_surf_info.format = temp.format;
     cur_surf_info.palette = temp.palette;
   }
 
@@ -106,6 +104,9 @@ bool set_screen_mode_format(ScreenMode new_mode, SurfaceTemplate &new_surf_templ
   display_mode_changed(new_mode, new_surf_template);
 
   cur_screen_mode = new_mode;
+
+  cur_surf_info.bounds = new_surf_template.bounds;
+  cur_surf_info.format = new_surf_template.format;
 
   return true;
 }
