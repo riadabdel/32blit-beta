@@ -9,7 +9,7 @@
 using namespace blit;
 
 // double buffering for lores
-static volatile int buf_index = 0;
+static uint8_t *cur_display_buffer = nullptr;
 
 static volatile bool do_render = true;
 
@@ -20,12 +20,12 @@ static void fill_scanline_buffer(struct scanvideo_scanline_buffer *buffer) {
     0x0000u | (COMPOSABLE_EOL_ALIGN << 16)
   };
 
-  int w = cur_screen_mode == ScreenMode::lores ? DISPLAY_WIDTH / 2 : DISPLAY_WIDTH;
+  int w = cur_surf_info.bounds.w;
 
   buffer->data[0] = 4;
   buffer->data[1] = host_safe_hw_ptr(buffer->data + 8);
   buffer->data[2] = (w - 4) / 2; // first four pixels are handled separately
-  uint16_t *pixels = screen_fb + buf_index * (160 * 120) + scanvideo_scanline_number(buffer->scanline_id) * w;
+  uint16_t *pixels = (uint16_t *)cur_display_buffer + scanvideo_scanline_number(buffer->scanline_id) * w;
   buffer->data[3] = host_safe_hw_ptr(pixels + 4);
   buffer->data[4] = count_of(postamble);
   buffer->data[5] = host_safe_hw_ptr(postamble);
@@ -51,8 +51,6 @@ void init_display() {
 
 void update_display(uint32_t time) {
   if(do_render) {
-    if(fb_double_buffer)
-      screen.data = (uint8_t *)screen_fb + (buf_index ^ 1) * get_display_page_size(); // only works because there's no "firmware" here
     ::render(time);
     do_render = false;
   }
@@ -87,14 +85,14 @@ void update_display_core1() {
     fill_scanline_buffer(buffer);
     scanvideo_end_scanline_generation(buffer);
 
-    const int height = cur_screen_mode == ScreenMode::lores ? DISPLAY_HEIGHT / 2 : DISPLAY_HEIGHT;
+    const int height = cur_surf_info.bounds.h;
 
     if(scanvideo_scanline_number(buffer->scanline_id) == height - 1 && !do_render) {
       // swap buffers at the end of the frame, but don't start a render yet
       // (the last few lines of the old buffer are still in the queue)
       if(fb_double_buffer) {
         do_render_soon = true;
-        buf_index ^= 1;
+        std::swap(screen.data, cur_display_buffer);
       } else {
         // hires is single buffered and disabled by default
         // rendering correctly is the user's problem
@@ -128,6 +126,13 @@ bool display_mode_supported(blit::ScreenMode new_mode, const blit::SurfaceTempla
 }
 
 void display_mode_changed(blit::ScreenMode new_mode, blit::SurfaceTemplate &new_surf_template) {
-  if(!fb_double_buffer)
-    buf_index = 0;
+  auto display_buf_base = (uint8_t *)screen_fb;
+
+  if(!fb_double_buffer || !cur_display_buffer)
+    cur_display_buffer = display_buf_base;
+
+  if(fb_double_buffer) {
+    bool cur_buf_is_first = cur_display_buffer == display_buf_base;
+    screen.data = cur_buf_is_first ? display_buf_base + get_display_page_size() : display_buf_base;
+  }
 }
