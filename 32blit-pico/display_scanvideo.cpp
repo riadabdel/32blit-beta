@@ -52,7 +52,7 @@ void init_display() {
 void update_display(uint32_t time) {
   if(do_render) {
     if(fb_double_buffer)
-      screen.data = (uint8_t *)screen_fb + (buf_index ^ 1) * lores_page_size; // only works because there's no "firmware" here
+      screen.data = (uint8_t *)screen_fb + (buf_index ^ 1) * get_display_page_size(); // only works because there's no "firmware" here
     ::render(time);
     do_render = false;
   }
