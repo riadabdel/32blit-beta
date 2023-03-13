@@ -6,7 +6,7 @@
 
 using namespace blit;
 
-static SurfaceInfo cur_surf_info;
+SurfaceInfo cur_surf_info;
 
 bool fb_double_buffer = true;
 #ifdef BUILD_LOADER
