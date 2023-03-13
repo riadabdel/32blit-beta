@@ -8,6 +8,7 @@ using namespace blit;
 
 static SurfaceInfo cur_surf_info;
 
+bool fb_double_buffer = true;
 #if defined(BUILD_LOADER) || defined(BLIT_BOARD_PIMORONI_PICOVISION)
 uint16_t *screen_fb = nullptr;
 static uint32_t max_fb_size = 0;
@@ -77,11 +78,14 @@ bool set_screen_mode_format(ScreenMode new_mode, SurfaceTemplate &new_surf_templ
   }
 
   // check the framebuffer is large enough for mode
-  if(max_fb_size < uint32_t(new_surf_template.bounds.area()) * pixel_format_stride[int(new_surf_template.format)])
+  auto fb_size = uint32_t(new_surf_template.bounds.area()) * pixel_format_stride[int(new_surf_template.format)];
+  if(max_fb_size < fb_size)
     return false;
 
   if(!display_mode_supported(new_mode, new_surf_template))
     return false;
+
+  fb_double_buffer = fb_size * 2 <= max_fb_size;
 
   if(new_surf_template.format == PixelFormat::P) {
     init_palette();
