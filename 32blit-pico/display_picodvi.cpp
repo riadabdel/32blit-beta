@@ -72,7 +72,7 @@ static void __no_inline_not_in_flash_func(dvi_update)() {
     } else if(screen.format == PixelFormat::P) {
       // paletted hires
       auto out = double_buf;
-      auto in = (uint8_t *)screen_fb + buf_index * (DISPLAY_WIDTH * DISPLAY_HEIGHT) * ALLOW_HIRES + y * DISPLAY_WIDTH;
+      auto in = (uint8_t *)screen_fb + buf_index * (DISPLAY_WIDTH * DISPLAY_HEIGHT) + y * DISPLAY_WIDTH;
 
       for(int i = 0; i < 160; i++) {
         auto pixel0 = screen_palette565[*in++];
@@ -99,7 +99,9 @@ static void __no_inline_not_in_flash_func(dvi_update)() {
       y = 0;
       if(!do_render) {
         do_render = true;
-        buf_index ^= 1;
+
+        if(fb_double_buffer)
+          buf_index ^= 1;
       }
     }
   }
@@ -116,7 +118,7 @@ void init_display() {
 
 void update_display(uint32_t time) {
   if(do_render) {
-    if(cur_screen_mode == ScreenMode::lores || (screen.format == PixelFormat::P && ALLOW_HIRES)) {
+    if(fb_double_buffer) {
       // swap pages
       screen.data = (uint8_t *)screen_fb + (buf_index ^ 1) * get_display_page_size(); // only works because there's no "firmware" here
     }
@@ -140,4 +142,6 @@ bool display_render_needed() {
 }
 
 void display_mode_changed(blit::ScreenMode new_mode, blit::PixelFormat new_format) {
+  if(!fb_double_buffer)
+    buf_index = 0;
 }
