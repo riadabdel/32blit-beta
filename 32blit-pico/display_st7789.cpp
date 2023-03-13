@@ -31,10 +31,9 @@ void init_display() {
 }
 
 void update_display(uint32_t time) {
-  bool can_flip = cur_screen_mode == ScreenMode::lores || (screen.format == PixelFormat::P && ALLOW_HIRES);
 
-  if((do_render || (!have_vsync && time - last_render >= 20)) && (can_flip || !st7789::dma_is_busy())) {
-    if(can_flip) {
+  if((do_render || (!have_vsync && time - last_render >= 20)) && (fb_double_buffer || !st7789::dma_is_busy())) {
+    if(fb_double_buffer) {
       buf_index ^= 1;
 
       screen.data = (uint8_t *)screen_fb + (buf_index) * get_display_page_size();
