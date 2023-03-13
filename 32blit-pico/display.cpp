@@ -74,8 +74,6 @@ bool set_screen_mode_format(ScreenMode new_mode, SurfaceTemplate &new_surf_templ
   if(max_fb_size < fb_size)
     return false;
 
-  fb_double_buffer = fb_size * 2 <= max_fb_size;
-
   if(new_surf_template.format == PixelFormat::P) {
 #ifndef DISPLAY_SCANVIDEO
 
@@ -86,6 +84,10 @@ bool set_screen_mode_format(ScreenMode new_mode, SurfaceTemplate &new_surf_templ
 #endif
   } else if(new_surf_template.format != PixelFormat::RGB565)
     return false; // don't support any other formats for various reasons (RAM, no format conversion, pixel double PIO)
+
+  fb_double_buffer = fb_size * 2 <= max_fb_size;
+  if(!fb_double_buffer)
+    screen.data = new_surf_template.data;
 
   display_mode_changed(new_mode, new_surf_template.format);
 
