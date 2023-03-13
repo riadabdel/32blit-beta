@@ -55,7 +55,7 @@ extern "C" bool do_init() {
   blit::update = update;
   blit::render = render;
 
-  blit::api.set_framebuffer((uint8_t *)screen_fb, sizeof(screen_fb));
+  blit::api.set_framebuffer((uint8_t *)screen_fb, sizeof(screen_fb), {DISPLAY_WIDTH, DISPLAY_HEIGHT});
 
   blit::set_screen_mode(blit::ScreenMode::lores);
 
