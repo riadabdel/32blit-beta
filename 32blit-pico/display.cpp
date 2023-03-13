@@ -62,19 +62,31 @@ SurfaceInfo &set_screen_mode(ScreenMode mode) {
 bool set_screen_mode_format(ScreenMode new_mode, SurfaceTemplate &new_surf_template) {
   new_surf_template.data = (uint8_t *)screen_fb;
 
+  int min_buffers = 1;
+
   switch(new_mode) {
     case ScreenMode::lores:
       new_surf_template.bounds = lores_screen_size;
+#ifdef BUILD_LOADER
+      if(new_surf_template.bounds.w > max_fb_bounds.w / 2)
+        new_surf_template.bounds.w = max_fb_bounds.w / 2;
+#endif
+      min_buffers = 2;
       break;
     case ScreenMode::hires:
     case ScreenMode::hires_palette:
       new_surf_template.bounds = hires_screen_size;
+#ifdef BUILD_LOADER
+      if(new_surf_template.bounds.w > max_fb_bounds.w)
+        new_surf_template.bounds.w = max_fb_bounds.w;
+#endif
       break;
   }
 
   // check the framebuffer is large enough for mode
   auto fb_size = uint32_t(new_surf_template.bounds.area()) * pixel_format_stride[int(new_surf_template.format)];
-  if(max_fb_size < fb_size)
+
+  if(max_fb_size < fb_size * min_buffers)
     return false;
 
   if(new_surf_template.format == PixelFormat::P) {
