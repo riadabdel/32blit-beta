@@ -381,8 +381,6 @@ void update_display(uint32_t time) {
 
   // handle mode change
   if(need_mode_change) {
-    auto &cur_surf_info = blit::screen;
-
     auto new_res = find_resolution(cur_surf_info.bounds);
 
     auto &base_bounds = resolutions[new_res];
