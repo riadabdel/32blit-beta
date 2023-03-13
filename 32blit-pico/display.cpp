@@ -87,12 +87,14 @@ bool set_screen_mode_format(ScreenMode new_mode, SurfaceTemplate &new_surf_templ
   if(!display_mode_supported(new_mode, new_surf_template))
     return false;
 
-  fb_double_buffer = fb_size * 2 <= sizeof(screen_fb);
-
   if(new_surf_template.format == PixelFormat::P) {
     init_palette();
     new_surf_template.palette = screen_palette;
   }
+
+  fb_double_buffer = fb_size * 2 <= sizeof(screen_fb);
+  if(!fb_double_buffer)
+    screen.data = new_surf_template.data;
 
   display_mode_changed(new_mode, new_surf_template);
 
