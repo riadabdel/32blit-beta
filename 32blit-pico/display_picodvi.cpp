@@ -19,7 +19,7 @@ extern "C" {
 using namespace blit;
 
 // double buffering for lores
-static volatile int buf_index = 0;
+static uint8_t *cur_display_buffer = nullptr;
 
 static volatile bool do_render = true;
 static dvi_inst dvi0;
@@ -27,6 +27,9 @@ static int y = 0;
 
 static void __no_inline_not_in_flash_func(dvi_update)() {
   auto inst = &dvi0;
+
+  if(!screen_fb)
+    return;
 
   uint32_t double_buf[160];
 
@@ -41,27 +44,26 @@ static void __no_inline_not_in_flash_func(dvi_update)() {
         return;
     }
 
+    const auto w = cur_surf_info.bounds.w;
     uint32_t *scanbuf;
 
     if(cur_screen_mode == ScreenMode::lores) {
-      const auto lores_w = DISPLAY_WIDTH / 2;
-      const auto lores_h = DISPLAY_HEIGHT / 2;
 
       // pixel double x2
       if(!(y & 1)) {
         auto out = double_buf;
 
-        if(screen.format == PixelFormat::P) {
-          auto in = (uint8_t *)screen_fb + buf_index * (lores_w * lores_h) + (y / 2) * lores_w;
+        if(cur_surf_info.format == PixelFormat::P) {
+          auto in = cur_display_buffer + (y / 2) * w;
 
-          for(int i = 0; i < lores_w; i++) {
+          for(int i = 0; i < w; i++) {
             auto pixel = screen_palette565[*in++];
             *out++ = pixel | pixel << 16;
           }
         } else {
           // RGB565
-          auto in = screen_fb + buf_index * (lores_w * lores_h) + (y / 2) * lores_w;
-          for(int i = 0; i < lores_w; i++) {
+          auto in = (uint16_t *)cur_display_buffer + (y / 2) * w;
+          for(int i = 0; i < w; i++) {
             auto pixel = *in++;
             *out++ = pixel | pixel << 16;
           }
@@ -69,12 +71,12 @@ static void __no_inline_not_in_flash_func(dvi_update)() {
       }
 
       scanbuf = double_buf;
-    } else if(screen.format == PixelFormat::P) {
+    } else if(cur_surf_info.format == PixelFormat::P) {
       // paletted hires
       auto out = double_buf;
-      auto in = (uint8_t *)screen_fb + buf_index * (DISPLAY_WIDTH * DISPLAY_HEIGHT) + y * DISPLAY_WIDTH;
+      auto in = cur_display_buffer + y * w;
 
-      for(int i = 0; i < 160; i++) {
+      for(int i = 0; i < w; i++) {
         auto pixel0 = screen_palette565[*in++];
         auto pixel1 = screen_palette565[*in++];
         *out++ = pixel0 | pixel1 << 16;
@@ -83,7 +85,7 @@ static void __no_inline_not_in_flash_func(dvi_update)() {
       scanbuf = double_buf;
     } else {
       // hires
-      scanbuf = (uint32_t *)(screen_fb + y * DISPLAY_WIDTH);
+      scanbuf = (uint32_t *)(cur_display_buffer + y * w / 2);
     }
 
     // dvi_prepare_scanline_16bpp
@@ -101,7 +103,7 @@ static void __no_inline_not_in_flash_func(dvi_update)() {
         do_render = true;
 
         if(fb_double_buffer)
-          buf_index ^= 1;
+          std::swap(screen.data, cur_display_buffer);
       }
     }
   }
@@ -118,11 +120,6 @@ void init_display() {
 
 void update_display(uint32_t time) {
   if(do_render) {
-    if(fb_double_buffer) {
-      // swap pages
-      screen.data = (uint8_t *)screen_fb + (buf_index ^ 1) * get_display_page_size(); // only works because there's no "firmware" here
-    }
-
     ::render(time);
     do_render = false;
   }
@@ -142,6 +139,13 @@ bool display_render_needed() {
 }
 
 void display_mode_changed(blit::ScreenMode new_mode, blit::PixelFormat new_format) {
-  if(!fb_double_buffer)
-    buf_index = 0;
+  auto display_buf_base = (uint8_t *)screen_fb;
+
+  if(!fb_double_buffer || !cur_display_buffer)
+    cur_display_buffer = display_buf_base;
+
+  if(fb_double_buffer) {
+    bool cur_buf_is_first = cur_display_buffer == display_buf_base;
+    screen.data = cur_buf_is_first ? display_buf_base + get_display_page_size() : display_buf_base;
+  }
 }
