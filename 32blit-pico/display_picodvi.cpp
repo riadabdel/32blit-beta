@@ -53,6 +53,11 @@ static void __no_inline_not_in_flash_func(dvi_update)() {
       if(!(y & 1)) {
         auto out = double_buf;
 
+        int pad_x = ((DISPLAY_WIDTH / 2) - w) / 2;
+
+        for(int i = 0; i < pad_x; i++)
+          *out++ = 0;
+
         if(cur_surf_info.format == PixelFormat::P) {
           auto in = cur_display_buffer + (y / 2) * w;
 
@@ -68,6 +73,9 @@ static void __no_inline_not_in_flash_func(dvi_update)() {
             *out++ = pixel | pixel << 16;
           }
         }
+
+        for(int i = 0; i < pad_x; i++)
+          *out++ = 0;
       }
 
       scanbuf = double_buf;
