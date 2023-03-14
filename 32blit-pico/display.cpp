@@ -104,12 +104,12 @@ bool set_screen_mode_format(ScreenMode new_mode, SurfaceTemplate &new_surf_templ
   if(!fb_double_buffer)
     screen.data = new_surf_template.data;
 
+  cur_surf_info.bounds = new_surf_template.bounds;
+  cur_surf_info.format = new_surf_template.format;
+
   display_mode_changed(new_mode, new_surf_template.format);
 
   cur_screen_mode = new_mode;
-
-  cur_surf_info.bounds = new_surf_template.bounds;
-  cur_surf_info.format = new_surf_template.format;
 
   return true;
 }
