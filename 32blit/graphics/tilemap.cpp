@@ -180,12 +180,19 @@ namespace blit {
    * \param[in] ewc
    */
   void TileMap::texture_span(Surface *dest, Point s, unsigned int c, Vec2 swc, Vec2 ewc) {
-    Surface *src = sprites;
-
     static const int fix_shift = 16;
 
     Point wc(swc * (1 << fix_shift));
     Point dwc(((ewc - swc) / float(c)) * (1 << fix_shift));
+
+    fixed_texture_span(dest, s, c, wc, dwc);
+  }
+
+  void TileMap::fixed_texture_span(Surface *dest, Point s, unsigned int c, Point wc, Point dwc) {
+    Surface *src = sprites;
+
+    static const int fix_shift = 16;
+
     int32_t doff = dest->offset(s.x, s.y);
 
     do {
