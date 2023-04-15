@@ -182,10 +182,11 @@ namespace blit {
   void TileMap::texture_span(Surface *dest, Point s, unsigned int c, Vec2 swc, Vec2 ewc) {
     static const int fix_shift = 16;
 
-    Point wc(swc * (1 << fix_shift));
-    Point dwc(((ewc - swc) / float(c)) * (1 << fix_shift));
+    Point start(swc * (1 << fix_shift));
+    Point end(ewc * (1 << fix_shift));
+    Point dwc((end - start) / c);
 
-    fixed_texture_span(dest, s, c, wc, dwc);
+    fixed_texture_span(dest, s, c, start, dwc);
   }
 
   void TileMap::fixed_texture_span(Surface *dest, Point s, unsigned int c, Point wc, Point dwc) {
