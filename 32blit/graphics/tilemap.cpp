@@ -3,6 +3,10 @@
 #include <cstring>
 #include "tilemap.hpp"
 
+#ifdef PICO_BUILD
+#include "hardware/interp.h"
+#endif
+
 namespace blit {
 
   /**
@@ -133,6 +137,10 @@ namespace blit {
 
     viewport = dest->clip.intersection(viewport);
 
+#ifdef PICO_BUILD
+    interp_init();
+#endif
+
     for (uint16_t y = viewport.y; y < viewport.y + viewport.h; y++) {
       Vec2 swc(viewport.x, y);
       Vec2 ewc(viewport.x + viewport.w, y);
@@ -146,7 +154,11 @@ namespace blit {
         ewc *= transform;
       }
 
+#ifdef PICO_BUILD
+      interp_texture_span(dest, Point(viewport.x, y), viewport.w, swc, ewc);
+#else
       texture_span(dest, Point(viewport.x, y), viewport.w, swc, ewc);
+#endif
     }
   }
 
@@ -244,8 +256,127 @@ namespace blit {
         doff++;
         c--;
       } while(c && (wc.x >> (fix_shift + 3)) == wcx >> 3 && (wc.y >> (fix_shift + 3)) == wcy >> 3);
-
     } while (c);
   }
+
+#ifdef PICO_BUILD
+  void TileMap::interp_init() {
+    static const int fix_shift = 16;
+
+    int width_bits = __builtin_ctz(bounds.w);
+    int height_bits = __builtin_ctz(bounds.h);
+
+    // x (add dwc.x, shift/mask out fractional part, / 8)
+    interp_config cfg = interp_default_config();
+    interp_config_set_shift(&cfg, fix_shift + 3);
+    interp_config_set_mask(&cfg, 0, width_bits - 1);
+    interp_config_set_add_raw(&cfg, true);
+    interp_set_config(interp0, 0, &cfg);
+
+    // y (add dwc.y, shift/mask out fractional part, / 8, * width)
+    interp_config_set_shift(&cfg, fix_shift + 3 - width_bits);
+    interp_config_set_mask(&cfg, width_bits, width_bits + height_bits - 1);
+    interp_set_config(interp0, 1, &cfg);
+
+    // results in (y / 8) * width + (x /  8) in result 2
+
+    // x in tile
+    interp_config_set_shift(&cfg, fix_shift);
+    interp_config_set_mask(&cfg, 0, 2);
+    interp_set_config(interp1, 0, &cfg);
+
+    // y in tile
+    interp_config_set_shift(&cfg, 0);
+    interp_config_set_mask(&cfg, fix_shift, fix_shift + 2);
+    interp_set_config(interp1, 1, &cfg);
+
+    // results in v << 16 + u in result 2
+  }
+
+  // optimised span using RP2040's interpolators
+  // falls bace to unoptimised if wrap_mode != REPEAT and swc/ewc not in bounds
+  void TileMap::interp_texture_span(Surface *dest, Point s, unsigned int c, Vec2 swc, Vec2 ewc) {
+    Surface *src = sprites;
+
+    static const int fix_shift = 16;
+    static const int fix_scale = (1 << fix_shift);
+
+    Point fix_start(swc * fix_scale);
+    Point fix_end(ewc * fix_scale);
+    Point dwc((fix_end - fix_start) / c);
+
+    // fall back to unoptimised
+    if(repeat_mode != REPEAT) {
+      auto scaled_bounds = bounds * fix_scale * 8;
+
+      uint32_t bounds_w_mask = ~(scaled_bounds.w - 1);
+      uint32_t bounds_h_mask = ~(scaled_bounds.h - 1);
+
+      if((fix_end.x & bounds_w_mask) || (fix_end.y & bounds_h_mask))
+        return fixed_texture_span(dest, s, c, fix_start, dwc);
+      else if((fix_start.x & bounds_w_mask) || (fix_start.y & bounds_h_mask))
+        return fixed_texture_span(dest, s, c, fix_start, dwc);
+    }
+
+    int32_t doff = dest->offset(s.x, s.y);
+
+    interp0->accum[0] = interp1->accum[0] = fix_start.x;
+    interp0->accum[1] = interp1->accum[1] = fix_start.y;
+
+    interp0->base[0] = interp1->base[0] = dwc.x;
+    interp0->base[1] = interp1->base[1] = dwc.y;
+
+    interp0->base[2] = uintptr_t(tiles);
+    interp1->base[2] = 0;
+
+    auto rel_transforms = transforms - tiles;
+
+    do {
+      auto tile_ptr = (uint8_t *)(interp0->pop[2]);
+
+      if (*tile_ptr != empty_tile_id) {
+        uint8_t tile_id = *tile_ptr;
+        uint8_t transform = transforms ? tile_ptr[rel_transforms] : 0;
+
+        // coordinate within sprite
+        uint32_t uv = interp1->pop[2];
+
+        int u = uv & ((1 << fix_shift) - 1);
+        int v = uv >> fix_shift;
+
+        // if this tile has a transform then modify the uv coordinates
+        if (transform) {
+          v = (transform & 0b010) ? (7 - v) : v;
+          u = (transform & 0b100) ? (7 - u) : u;
+          if (transform & 0b001) { int tmp = u; u = v; v = tmp; }
+        }
+
+        // sprite sheet coordinates for top left corner of sprite
+        u += (tile_id & 0b1111) * 8;
+        v += (tile_id >> 4) * 8;
+
+        // draw as many pixels as possible
+        int count = 1;
+
+        while(--c && interp1->peek[2] == uv && interp0->peek[2] == uintptr_t(tile_ptr)) {
+          interp0->pop[2]; interp1->pop[2];
+          count++;
+        }
+
+        int soff = src->offset(u, v);
+        dest->bbf(src, soff, dest, doff, count, 0);
+
+        doff += count;
+
+        continue;
+      }
+
+      // skip
+      interp1->pop[2];
+      doff++;
+      c--;
+    } while (c);
+  }
+#endif
 
 }

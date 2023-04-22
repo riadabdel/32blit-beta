@@ -72,3 +72,7 @@ if(CMAKE_C_COMPILER_ID MATCHES "MSVC")
     -wd4244 # conversions
   )
 endif()
+
+if(PICO_SDK_PATH)
+	target_link_libraries(BlitEngine hardware_interp)
+endif()

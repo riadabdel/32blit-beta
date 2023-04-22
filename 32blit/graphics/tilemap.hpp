@@ -68,6 +68,11 @@ namespace blit {
     void texture_span(Surface *dest, Point s, unsigned int c, Vec2 swc, Vec2 ewc);
 
     void fixed_texture_span(Surface *dest, Point s, unsigned int c, Point wc, Point dwc);
+
+#ifdef PICO_BUILD
+    void interp_init();
+    void interp_texture_span(Surface *dest, Point s, unsigned int c, Vec2 swc, Vec2 ewc);
+#endif
   };
 
 }
