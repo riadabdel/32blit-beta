@@ -395,7 +395,7 @@ namespace blit {
     uint8_t* m = dest->mask ? dest->mask->data + doff : nullptr;
 
     // solid fill/blend
-    if(!m && src_step == 0 && cnt > 1) {
+    if(!m && src_step == 0) {
       Pen *pen = src->palette ? &src->palette[*s] : (Pen *)s;
 
       uint16_t a = src->format == PixelFormat::RGB ? 255 : pen->a;
