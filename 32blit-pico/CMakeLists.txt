@@ -239,6 +239,7 @@ function(blit_executable NAME)
     # no relocs, just copy it
     set(BIN_NAME "$<IF:$<BOOL:$<TARGET_PROPERTY:${NAME}-bl,OUTPUT_NAME>>,$<TARGET_PROPERTY:${NAME}-bl,OUTPUT_NAME>,$<TARGET_PROPERTY:${NAME}-bl,NAME>>.bin")
     add_custom_command(TARGET ${NAME}-bl POST_BUILD
+        VERBATIM
         COMMENT "Building ${NAME}.blit"
         COMMAND cp ${BIN_NAME} ${BLIT_FILENAME}
     )
@@ -271,6 +272,7 @@ function(blit_metadata TARGET FILE)
     set(METADATA_SOURCE "${CMAKE_CURRENT_BINARY_DIR}/${TARGET}_binary_info.cpp")
 
     add_custom_command(
+        VERBATIM
         OUTPUT ${METADATA_SOURCE}
         COMMAND cd ${CMAKE_CURRENT_SOURCE_DIR} && ${32BLIT_TOOLS_EXECUTABLE} metadata --force --config ${FILE} --pico-bi ${METADATA_SOURCE}
         DEPENDS ${FILE}
@@ -287,6 +289,7 @@ function(blit_metadata TARGET FILE)
     endif()
 
     add_custom_command(
+        VERBATIM
         TARGET ${TARGET}-bl POST_BUILD
         COMMAND cd ${CMAKE_CURRENT_SOURCE_DIR} && ${PYTHON_EXECUTABLE} -m ttblit metadata --config ${FILE} --file ${CMAKE_CURRENT_BINARY_DIR}/${BLIT_FILENAME}
     )

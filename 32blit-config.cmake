@@ -59,6 +59,7 @@ if (NOT DEFINED BLIT_ONCE)
 
 		# do asset packing (at build time)
 		add_custom_command(
+			VERBATIM
 			OUTPUT ${ASSET_OUTPUTS}
 			COMMAND cd ${CMAKE_CURRENT_SOURCE_DIR} && ${32BLIT_TOOLS_EXECUTABLE} --debug  pack --force --config ${CMAKE_CURRENT_SOURCE_DIR}/${FILE} --output ${CMAKE_CURRENT_BINARY_DIR}
 			DEPENDS ${ASSET_DEPENDS} ${CMAKE_CURRENT_SOURCE_DIR}/${FILE}
