@@ -275,7 +275,7 @@ function(blit_metadata TARGET FILE)
 
     add_custom_command(
         TARGET ${TARGET}-bl POST_BUILD
-        COMMAND cd ${CMAKE_CURRENT_SOURCE_DIR} && ${PYTHON_EXECUTABLE} -m ttblit metadata --config ${FILE} --file ${CMAKE_CURRENT_BINARY_DIR}/${BLIT_FILENAME}
+        COMMAND cd ${CMAKE_CURRENT_SOURCE_DIR} && ${32BLIT_TOOLS_EXECUTABLE} metadata --config ${FILE} --file ${CMAKE_CURRENT_BINARY_DIR}/${BLIT_FILENAME}
     )
 
     # force relink on change so that the post-build commands are rerun
