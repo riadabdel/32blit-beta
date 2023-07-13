@@ -124,6 +124,10 @@ endif()
 if(BLIT_DISPLAY_DRIVER STREQUAL "picodvi")
     set(BLIT_ENABLE_CORE1 TRUE)
     list(APPEND BLIT_BOARD_LIBRARIES libdvi)
+elseif(BLIT_DISPLAY_DRIVER STREQUAL "picovision")
+    include(pimoroni_pico_import.cmake)
+    list(APPEND BLIT_BOARD_LIBRARIES dv_display)
+    set(BLIT_ENABLE_CORE1 TRUE) # mostly required for audio with current hacky copying
 elseif(BLIT_DISPLAY_DRIVER STREQUAL "scanvideo")
     set(BLIT_REQUIRE_PICO_EXTRAS TRUE)
     set(BLIT_ENABLE_CORE1 TRUE)
@@ -171,6 +175,14 @@ if(BLIT_DISPLAY_DRIVER STREQUAL "picodvi")
     add_subdirectory(${picodvi_SOURCE_DIR}/software/libdvi ${picodvi_BINARY_DIR} EXCLUDE_FROM_ALL)
 
     target_include_directories(BlitHalPico INTERFACE ${picodvi_SOURCE_DIR}/software/include) # common_dvi_pin_configs.h
+endif()
+
+# include picovision drivers
+if(BLIT_DISPLAY_DRIVER STREQUAL "picovision")
+    include(common/pimoroni_i2c)
+    include(drivers/aps6404/aps6404)
+    include(drivers/dv_display/dv_display)
+    target_include_directories(BlitHalPico INTERFACE ${PIMORONI_PICO_PATH}) # this should probably be fixed
 endif()
 
 # driver sources
