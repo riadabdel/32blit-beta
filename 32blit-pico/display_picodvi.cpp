@@ -33,6 +33,12 @@ static void __no_inline_not_in_flash_func(dvi_update)() {
 
   uint32_t double_buf[160];
 
+  const auto w = cur_surf_info.bounds.w;
+
+  // FIXME: sync mode switching
+  if(cur_screen_mode == ScreenMode::lores && w > 160)
+    return;
+
   while(true) {
     uint32_t *tmdsbuf;
     if(!queue_try_remove_u32(&inst->q_tmds_free, &tmdsbuf)) {
@@ -44,7 +50,6 @@ static void __no_inline_not_in_flash_func(dvi_update)() {
         return;
     }
 
-    const auto w = cur_surf_info.bounds.w;
     uint32_t *scanbuf;
 
     if(cur_screen_mode == ScreenMode::lores) {
