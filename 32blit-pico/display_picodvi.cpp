@@ -28,7 +28,7 @@ static int y = 0;
 static void __no_inline_not_in_flash_func(dvi_update)() {
   auto inst = &dvi0;
 
-  if(!screen_fb)
+  if(!cur_display_buffer)
     return;
 
   uint32_t double_buf[160];
@@ -108,10 +108,10 @@ static void __no_inline_not_in_flash_func(dvi_update)() {
     if(y == DISPLAY_HEIGHT) {
       y = 0;
       if(!do_render) {
-        do_render = true;
-
         if(fb_double_buffer)
           std::swap(screen.data, cur_display_buffer);
+
+        do_render = true;
       }
     }
   }
@@ -150,10 +150,5 @@ void display_mode_changed(blit::ScreenMode new_mode, blit::PixelFormat new_forma
   auto display_buf_base = (uint8_t *)screen_fb;
 
   if(!fb_double_buffer || !cur_display_buffer)
-    cur_display_buffer = display_buf_base;
-
-  if(fb_double_buffer) {
-    bool cur_buf_is_first = cur_display_buffer == display_buf_base;
-    screen.data = cur_buf_is_first ? display_buf_base + get_display_page_size() : display_buf_base;
-  }
+    cur_display_buffer = fb_double_buffer ? display_buf_base + get_display_page_size() : display_buf_base;
 }

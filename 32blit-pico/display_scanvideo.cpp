@@ -76,7 +76,7 @@ void init_display_core1() {
 }
 
 void update_display_core1() {
-  if(!screen_fb)
+  if(!cur_display_buffer)
     return;
 
   struct scanvideo_scanline_buffer *buffer = scanvideo_begin_scanline_generation(true);
@@ -129,10 +129,5 @@ void display_mode_changed(blit::ScreenMode new_mode, blit::SurfaceTemplate &new_
   auto display_buf_base = (uint8_t *)screen_fb;
 
   if(!fb_double_buffer || !cur_display_buffer)
-    cur_display_buffer = display_buf_base;
-
-  if(fb_double_buffer) {
-    bool cur_buf_is_first = cur_display_buffer == display_buf_base;
-    screen.data = cur_buf_is_first ? display_buf_base + get_display_page_size() : display_buf_base;
-  }
+    cur_display_buffer = fb_double_buffer ? display_buf_base + get_display_page_size() : display_buf_base;
 }
