@@ -155,7 +155,7 @@ bool display_mode_supported(blit::ScreenMode new_mode, const blit::SurfaceTempla
   return new_surf_template.format == blit::PixelFormat::RGB565 || new_surf_template.format == blit::PixelFormat::P;
 }
 
-void display_mode_changed(blit::ScreenMode new_mode, blit::PixelFormat new_format) {
+void display_mode_changed(blit::ScreenMode new_mode, blit::SurfaceTemplate &new_surf_template) {
   auto display_buf_base = (uint8_t *)screen_fb;
 
   bool use_second_buf = fb_double_buffer && screen.data == display_buf_base;
