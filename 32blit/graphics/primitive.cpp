@@ -28,7 +28,7 @@ namespace blit {
 
     uint32_t o = offset(cr);
 
-    if(cr.x == 0 && cr.w == bounds.w) {
+    if(cr.x == 0 && cr.w == bounds.w && false) {
       pbf(&pen, this, o, cr.w * cr.h);
       return;
     }
