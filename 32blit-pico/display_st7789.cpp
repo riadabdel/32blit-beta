@@ -69,7 +69,7 @@ bool display_render_needed() {
 }
 
 bool display_mode_supported(blit::ScreenMode new_mode, const blit::SurfaceTemplate &new_surf_template) {
-  if(new_surf_template.format != blit::PixelFormat::RGB565)
+  if(new_surf_template.format != blit::PixelFormat::RGB565 && new_surf_template.format != blit::PixelFormat::P)
     return false;
 
   // TODO: could allow smaller sizes with window
