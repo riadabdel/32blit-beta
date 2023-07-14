@@ -107,6 +107,11 @@ static bool parse_file_metadata(const std::string &filename, BlitGameMetadata &m
   if(memcmp(buf, "BLITMETA", 8) != 0) {
     auto &header = *(BlitGameHeader *)buf;
     if(read == sizeof(BlitGameHeader) && header.magic == blit_game_magic) {
+
+      metadata.device_id = header.device_id;
+      metadata.api_version_major = header.device_id == BlitDevice::STM32BlitOld ? 0 : header.api_version_major;
+      metadata.api_version_minor = header.device_id == BlitDevice::STM32BlitOld ? 0 : header.api_version_minor;
+
       offset += (header.end & 0x1FFFFFF);
       read = f.read(offset, 10, (char *)buf);
     }
@@ -125,6 +130,22 @@ static bool parse_file_metadata(const std::string &filename, BlitGameMetadata &m
   }
 
   return false;
+}
+
+static bool is_compatible(const BlitGameMetadata &metadata) {
+  // TODO: get the current device id from somewhere
+#ifdef PICO_BUILD
+  if(metadata.device_id != BlitDevice::RP2040)
+    return false;
+#else
+  if(metadata.device_id != BlitDevice::STM32Blit && metadata.device_id != BlitDevice::STM32BlitOld)
+    return false;
+#endif
+
+  if(metadata.api_version_major != api_version_major || metadata.api_version_minor > api_version_minor)
+    return false;
+
+  return true;
 }
 
 static void sort_file_list() {
@@ -583,6 +604,11 @@ static void render_game_info() {
   char buf[20];
   snprintf(buf, 20, "%i block%s", num_blocks, num_blocks == 1 ? "" : "s");
   screen.text(buf, minimal_font, Point(game_info_offset.x, screen.bounds.h - 16));
+
+  if(!is_compatible(selected_game_metadata)) {
+    screen.pen = {255, 0, 0};
+    screen.text("INCOMPATIBLE", minimal_font, Point(screen.bounds.w - 10, screen.bounds.h - 16), true, TextAlign::top_right);
+  }
 }
 
 void render(uint32_t time) {

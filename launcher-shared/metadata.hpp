@@ -4,6 +4,8 @@
 
 #include "graphics/surface.hpp"
 
+#include "executable.hpp"
+
 struct BlitGameMetadata {
   uint16_t length = 0;
   uint32_t crc32 = 0;
@@ -12,6 +14,10 @@ struct BlitGameMetadata {
   std::vector<std::string> filetypes;
 
   blit::Surface *icon = nullptr, *splash = nullptr;
+
+  // from header
+  BlitDevice device_id = BlitDevice::STM32BlitOld;
+  uint16_t api_version_major = 0, api_version_minor = 0;
 
   void free_surfaces() {
     if(icon) {
