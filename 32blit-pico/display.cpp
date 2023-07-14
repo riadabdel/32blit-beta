@@ -89,16 +89,13 @@ bool set_screen_mode_format(ScreenMode new_mode, SurfaceTemplate &new_surf_templ
   if(max_fb_size < fb_size * min_buffers)
     return false;
 
-  if(new_surf_template.format == PixelFormat::P) {
-#ifndef DISPLAY_SCANVIDEO
+  if(!display_mode_supported(new_mode, new_surf_template))
+    return false;
 
+  if(new_surf_template.format == PixelFormat::P) {
     init_palette();
     new_surf_template.palette = screen_palette;
-#else
-    return false;
-#endif
-  } else if(new_surf_template.format != PixelFormat::RGB565)
-    return false; // don't support any other formats for various reasons (RAM, no format conversion, pixel double PIO)
+  }
 
   fb_double_buffer = fb_size * 2 <= max_fb_size;
   if(!fb_double_buffer)

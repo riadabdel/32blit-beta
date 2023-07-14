@@ -151,6 +151,10 @@ bool display_render_needed() {
   return do_render;
 }
 
+bool display_mode_supported(blit::ScreenMode new_mode, const blit::SurfaceTemplate &new_surf_template) {
+  return new_surf_template.format == blit::PixelFormat::RGB565;
+}
+
 void display_mode_changed(blit::ScreenMode new_mode, blit::PixelFormat new_format) {
   auto display_buf_base = (uint8_t *)screen_fb;
 
