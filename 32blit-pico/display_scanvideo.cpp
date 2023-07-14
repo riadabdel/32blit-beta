@@ -116,6 +116,6 @@ bool display_render_needed() {
 void display_mode_changed(blit::ScreenMode new_mode, blit::PixelFormat new_format) {
   auto display_buf_base = (uint8_t *)screen_fb;
 
-  if(!fb_double_buffer || !cur_display_buffer)
-    cur_display_buffer = fb_double_buffer ? display_buf_base + get_display_page_size() : display_buf_base;
+  bool use_second_buf = fb_double_buffer && screen.data == display_buf_base;
+  cur_display_buffer = use_second_buf ? display_buf_base + get_display_page_size() : display_buf_base;
 }
