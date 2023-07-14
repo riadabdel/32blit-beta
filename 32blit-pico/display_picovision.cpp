@@ -71,5 +71,5 @@ bool display_mode_supported(blit::ScreenMode new_mode, const blit::SurfaceTempla
   return new_surf_template.format == blit::PixelFormat::RGB565; // this is a lie
 }
 
-void display_mode_changed(blit::ScreenMode new_mode, blit::PixelFormat new_format) {
+void display_mode_changed(blit::ScreenMode new_mode, blit::SurfaceTemplate &new_surf_template) {
 }
