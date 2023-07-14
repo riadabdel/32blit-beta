@@ -84,7 +84,7 @@ static void __no_inline_not_in_flash_func(dvi_update)() {
       auto out = double_buf;
       auto in = cur_display_buffer + y * w;
 
-      for(int i = 0; i < w; i++) {
+      for(int i = 0; i < w / 2; i++) {
         auto pixel0 = screen_palette565[*in++];
         auto pixel1 = screen_palette565[*in++];
         *out++ = pixel0 | pixel1 << 16;
