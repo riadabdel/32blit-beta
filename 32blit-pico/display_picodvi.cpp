@@ -93,7 +93,7 @@ static void __no_inline_not_in_flash_func(dvi_update)() {
       scanbuf = double_buf;
     } else {
       // hires
-      scanbuf = (uint32_t *)(cur_display_buffer + y * w / 2);
+      scanbuf = (uint32_t *)(cur_display_buffer + y * w * 2);
     }
 
     // dvi_prepare_scanline_16bpp
