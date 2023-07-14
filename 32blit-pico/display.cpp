@@ -48,7 +48,7 @@ int get_display_page_size() {
 // blit api
 
 SurfaceInfo &set_screen_mode(ScreenMode mode) {
-  SurfaceTemplate temp{nullptr, {0, 0}, mode == ScreenMode::hires_palette ? PixelFormat::P : PixelFormat::RGB565};
+  SurfaceTemplate temp{nullptr, {0, 0}, mode == ScreenMode::hires_palette ? PixelFormat::P : DEFAULT_SCREEN_FORMAT};
 
   // may fail for hires/palette
   if(set_screen_mode_format(mode, temp)) {
