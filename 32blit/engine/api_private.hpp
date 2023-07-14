@@ -33,6 +33,9 @@ namespace blit {
     Size bounds;
     PixelFormat format;
     Pen *palette = nullptr;
+
+    PenBlendFunc pen_blend = nullptr;
+    BlitBlendFunc blit_blend = nullptr;
   };
 
   // subset of Surface for API compat
