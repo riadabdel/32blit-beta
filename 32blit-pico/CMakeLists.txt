@@ -185,6 +185,7 @@ if(BLIT_DISPLAY_DRIVER STREQUAL "picovision")
     # also we need the include path for the firmware
     target_include_directories(BlitHalPico INTERFACE ${PIMORONI_PICO_PATH}/drivers/dv_display)
     target_sources(BlitHalPico INTERFACE ${PIMORONI_PICO_PATH}/drivers/dv_display/swd_load.cpp)
+    pico_generate_pio_header(BlitHalPico ${PIMORONI_PICO_PATH}/drivers/dv_display/swd.pio)
 endif()
 
 # driver sources
