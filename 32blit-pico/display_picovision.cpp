@@ -4,7 +4,6 @@
 
 #include "aps6404.hpp"
 #include "swd_load.hpp"
-#define section_data section_data_
 #include "pico-stick.h"
 
 #include "config.h"
