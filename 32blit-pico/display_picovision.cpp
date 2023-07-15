@@ -67,7 +67,11 @@ inline void unpack_rgb555(uint16_t rgb555, uint8_t &r, uint8_t &g, uint8_t &b) {
   b =  rgb555        & 0x1F; b = b << 3;
 }
 
+template<int h_repeat = 1>
 inline void blend_rgba_rgb555(const blit::Pen* s, uint32_t off, int dest_w, uint8_t a, uint32_t c) {
+  off *= h_repeat;
+  c *= h_repeat;
+
   do {
     auto step = std::min(c, uint32_t(std::size(blend_buf)));
 
@@ -88,6 +92,7 @@ inline void blend_rgba_rgb555(const blit::Pen* s, uint32_t off, int dest_w, uint
   } while(c);
 }
 
+template<int h_repeat = 1>
 static void pen_rgba_rgb555_picovision(const blit::Pen* pen, const blit::Surface* dest, uint32_t off, uint32_t c) {
   if(!pen->a) return;
 
@@ -102,27 +107,31 @@ static void pen_rgba_rgb555_picovision(const blit::Pen* pen, const blit::Surface
     if (a >= 255) {
       // no alpha, just copy
       uint32_t val = pen555 | pen555 << 16;
-      ram.write_repeat(base_address + off * 2, val, c * 2);
+      ram.write_repeat(base_address + off * h_repeat * 2, val, c * h_repeat * 2);
     }
     else {
       // alpha, blend
-      blend_rgba_rgb555(pen, off, dest->bounds.w, a, c);
+      blend_rgba_rgb555<h_repeat>(pen, off, dest->bounds.w, a, c);
     }
   } else {
     // mask enabled, slow blend
     do {
       uint16_t ma = alpha(a, *m++);
-      blend_rgba_rgb555(pen, off, dest->bounds.w, ma, 1);
+      blend_rgba_rgb555<h_repeat>(pen, off, dest->bounds.w, ma, 1);
       off++;
     } while (--c);
   }
 }
 
+template<int h_repeat = 1>
 static void blit_rgba_rgb555_picovision(const blit::Surface* src, uint32_t soff, const blit::Surface* dest, uint32_t doff, uint32_t cnt, int32_t src_step) {
   uint8_t* s = src->palette ? src->data + soff : src->data + (soff * src->pixel_stride);
   uint8_t* m = dest->mask ? dest->mask->data + doff : nullptr;
 
   // TODO: solid fill opt?
+
+  doff *= h_repeat;
+  cnt *= h_repeat;
 
   do {
     auto step = std::min(cnt, uint32_t(std::size(blend_buf)));
@@ -132,20 +141,22 @@ static void blit_rgba_rgb555_picovision(const blit::Surface* src, uint32_t soff,
       ram.read_blocking(base_address + doff * 2, (uint32_t*)blend_buf, (step + 1) >> 1);
 
     auto *ptr = blend_buf;
-    for(unsigned i = 0; i < step; i++) {
+    for(unsigned i = 0; i < step; i += h_repeat) {
       auto pen = src->palette ? &src->palette[*s] : (blit::Pen *)s;
 
       uint16_t a = src->format == blit::PixelFormat::RGB ? 255 : pen->a;
       a = m ? alpha(a, *m++, dest->alpha) : alpha(a, dest->alpha);
 
-      if(a >= 255) {
-        *ptr++ = pack_rgb555(pen->r, pen->g, pen->b);
-      } else if (a > 1) {
-        uint8_t r, g, b;
-        unpack_rgb555(*ptr, r, g, b);
-        *ptr++ = pack_rgb555(blend(pen->r, r, a), blend(pen->g, g, a), blend(pen->b, b, a));
-      }else{
-        ptr++;
+      for(int j = 0; j < h_repeat; j++) {
+        if(a >= 255) {
+          *ptr++ = pack_rgb555(pen->r, pen->g, pen->b);
+        } else if (a > 1) {
+          uint8_t r, g, b;
+          unpack_rgb555(*ptr, r, g, b);
+          *ptr++ = pack_rgb555(blend(pen->r, r, a), blend(pen->g, g, a), blend(pen->b, b, a));
+        }else{
+          ptr++;
+        }
       }
 
       s += (src->pixel_stride) * src_step;
@@ -286,8 +297,13 @@ bool display_mode_supported(blit::ScreenMode new_mode, const blit::SurfaceTempla
 }
 
 void display_mode_changed(blit::ScreenMode new_mode, blit::SurfaceTemplate &new_surf_template) {
-  new_surf_template.pen_blend = pen_rgba_rgb555_picovision;
-  new_surf_template.blit_blend = blit_rgba_rgb555_picovision;
+  if(new_surf_template.bounds.w <= 160) {
+    new_surf_template.pen_blend = pen_rgba_rgb555_picovision<2>;
+    new_surf_template.blit_blend = blit_rgba_rgb555_picovision<2>;
+  } else {
+    new_surf_template.pen_blend = pen_rgba_rgb555_picovision;
+    new_surf_template.blit_blend = blit_rgba_rgb555_picovision;
+  }
 
   need_mode_change = 2; // make sure to update both banks
 }
