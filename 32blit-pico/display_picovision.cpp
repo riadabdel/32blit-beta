@@ -92,14 +92,14 @@ template<int h_repeat = 1>
 static void pen_rgba_rgb555_picovision(const blit::Pen* pen, const blit::Surface* dest, uint32_t off, uint32_t c) {
   if(!pen->a) return;
 
-  off *= h_repeat;
-  c *= h_repeat;
-
   uint8_t* m = dest->mask ? dest->mask->data + off : nullptr;
 
   uint16_t a = alpha(pen->a, dest->alpha);
 
   auto pen555 = pack_rgb555(pen->r, pen->g, pen->b);
+
+  off *= h_repeat;
+  c *= h_repeat;
 
   if (!m) {
     // no mask
