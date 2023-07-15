@@ -69,8 +69,6 @@ inline void unpack_rgb555(uint16_t rgb555, uint8_t &r, uint8_t &g, uint8_t &b) {
 
 template<int h_repeat = 1>
 inline void blend_rgba_rgb555(const blit::Pen* s, uint32_t off, int dest_w, uint8_t a, uint32_t c) {
-  off *= h_repeat;
-  c *= h_repeat;
 
   do {
     auto step = std::min(c, uint32_t(std::size(blend_buf)));
@@ -96,6 +94,9 @@ template<int h_repeat = 1>
 static void pen_rgba_rgb555_picovision(const blit::Pen* pen, const blit::Surface* dest, uint32_t off, uint32_t c) {
   if(!pen->a) return;
 
+  off *= h_repeat;
+  c *= h_repeat;
+
   uint8_t* m = dest->mask ? dest->mask->data + off : nullptr;
 
   uint16_t a = alpha(pen->a, dest->alpha);
@@ -108,8 +109,8 @@ static void pen_rgba_rgb555_picovision(const blit::Pen* pen, const blit::Surface
       // no alpha, just copy
       uint32_t val = pen555 | pen555 << 16;
       do {
-        auto step = std::min(c, UINT32_C(512) / h_repeat);
-        ram.write_repeat(base_address + off * h_repeat * 2, val, step * h_repeat * 2);
+        auto step = std::min(c, UINT32_C(512));
+        ram.write_repeat(base_address + off * 2, val, step * 2);
         off += step;
         c -= step;
       } while(c);
