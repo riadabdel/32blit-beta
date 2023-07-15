@@ -192,6 +192,10 @@ static void write_frame_setup(uint16_t width, uint16_t height, blit::PixelFormat
 
   // write frame table
   uint frame_table_addr = 4 * 7;
+
+  // assume we also want a h_repeat of 3
+  if(v_repeat == 3 && width == 640)
+    width--; // adjust stride (this will result in a column of wrongness...)
   
   for(int y = 0; y < height; y += buf_size) {
     int step = std::min(buf_size, height - y);
@@ -259,8 +263,10 @@ void update_display(uint32_t time) {
 
     uint16_t final_w =  cur_surf_info.bounds.w;
 
-    // TODO: fix this in the blend funcs
-    if(h_repeat > 2) {
+    if(h_repeat == 3) {
+      h_repeat = 1;
+      final_w = base_width;
+    } else if(h_repeat > 2) {
       h_repeat = 2;
       final_w = base_width / 2;
     }
@@ -300,7 +306,10 @@ void display_mode_changed(blit::ScreenMode new_mode, blit::SurfaceTemplate &new_
   if(new_surf_template.bounds.w <= 160) {
     new_surf_template.pen_blend = pen_rgba_rgb555_picovision<2>;
     new_surf_template.blit_blend = blit_rgba_rgb555_picovision<2>;
-  } else {
+  } else if(new_surf_template.bounds.w <= 213) {
+    new_surf_template.pen_blend = pen_rgba_rgb555_picovision<3>;
+    new_surf_template.blit_blend = blit_rgba_rgb555_picovision<3>;
+  }else {
     new_surf_template.pen_blend = pen_rgba_rgb555_picovision;
     new_surf_template.blit_blend = blit_rgba_rgb555_picovision;
   }
