@@ -95,8 +95,11 @@ bool set_screen_mode_format(ScreenMode new_mode, SurfaceTemplate &new_surf_templ
   // check the framebuffer is large enough for mode
   auto fb_size = uint32_t(new_surf_template.bounds.area()) * pixel_format_stride[int(new_surf_template.format)];
 
+// TODO: more generic "doesn't have a framebuffer"?
+#ifndef BLIT_BOARD_PIMORONI_PICOVISION
   if(max_fb_size < fb_size * min_buffers)
     return false;
+#endif
 
   if(!display_mode_supported(new_mode, new_surf_template))
     return false;
