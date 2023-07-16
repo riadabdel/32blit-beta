@@ -174,27 +174,6 @@ static void blit_rgba_rgb555_picovision(const blit::Surface* src, uint32_t soff,
   doff *= h_repeat;
   cnt *= h_repeat;
 
-  // solid fill/blend
-  if(!m && src_step == 0) {
-    auto *pen = src->palette ? &src->palette[*s] : (blit::Pen *)s;
-
-    uint16_t a = src->format == blit::PixelFormat::RGB ? 255 : pen->a;
-
-    if(!a) return;
-
-    a = alpha(a, dest->alpha);
-
-    if (a >= 255) {
-      // no alpha, just copy
-      copy_rgba_rgb555(pen, doff, cnt);
-    }
-    else {
-      // alpha, blend
-      blend_rgba_rgb555(pen, doff, a, cnt);
-    }
-    return;
-  }
-
   flush_batch();
 
   do {
