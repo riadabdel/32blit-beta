@@ -66,8 +66,7 @@ inline void unpack_rgb555(uint16_t rgb555, uint8_t &r, uint8_t &g, uint8_t &b) {
   b =  rgb555        & 0x1F; b = b << 3;
 }
 
-inline void blend_rgba_rgb555(const blit::Pen* s, uint32_t off, int dest_w, uint8_t a, uint32_t c) {
-
+inline void blend_rgba_rgb555(const blit::Pen* s, uint32_t off, uint8_t a, uint32_t c) {
   do {
     auto step = std::min(c, uint32_t(std::size(blend_buf)));
 
@@ -115,13 +114,13 @@ static void pen_rgba_rgb555_picovision(const blit::Pen* pen, const blit::Surface
     }
     else {
       // alpha, blend
-      blend_rgba_rgb555(pen, off, dest->bounds.w, a, c);
+      blend_rgba_rgb555(pen, off, a, c);
     }
   } else {
     // mask enabled, slow blend
     do {
       uint16_t ma = alpha(a, *m++);
-      blend_rgba_rgb555(pen, off, dest->bounds.w, ma, 1);
+      blend_rgba_rgb555(pen, off, ma, 1);
       off++;
     } while (--c);
   }
