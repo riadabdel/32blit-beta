@@ -30,7 +30,7 @@ static uint8_t ram_bank = 0;
 static bool display_enabled = false;
 static uint8_t need_mode_change = 2;
 
-static volatile bool do_render = true;
+static volatile bool do_render = false;
 
 static uint16_t blend_buf[256];
 
@@ -360,4 +360,7 @@ void display_mode_changed(blit::ScreenMode new_mode, blit::SurfaceTemplate &new_
   }
 
   need_mode_change = 2; // make sure to update both banks
+
+  if(!display_enabled)
+    do_render = true;
 }
