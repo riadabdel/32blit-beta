@@ -312,7 +312,9 @@ int main() {
   irq_set_priority(TIMER_IRQ_0 + alarm_num, PICO_LOWEST_IRQ_PRIORITY);
 #endif
 
+#ifndef BUILD_LOADER
   blit::set_screen_mode(ScreenMode::lores);
+#endif
 
   blit::render = ::render;
   blit::update = ::update;
