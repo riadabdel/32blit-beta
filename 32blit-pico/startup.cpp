@@ -3,6 +3,8 @@
 
 #include "config.h"
 
+#ifndef BLIT_BOARD_PIMORONI_PICOVISION
+
 #if ALLOW_HIRES
 static uint16_t screen_fb[DISPLAY_WIDTH * DISPLAY_HEIGHT];
 #else
@@ -11,6 +13,8 @@ static uint16_t screen_fb[DISPLAY_WIDTH * DISPLAY_HEIGHT];
 static const int lores_page_size = (DISPLAY_WIDTH / 2) * ((DISPLAY_HEIGHT + 1) / 2) * 2;
 
 static uint16_t screen_fb[lores_page_size]; // double-buffered
+#endif
+
 #endif
 
 extern void init();
@@ -55,7 +59,9 @@ extern "C" bool do_init() {
   blit::update = update;
   blit::render = render;
 
+#ifndef BLIT_BOARD_PIMORONI_PICOVISION
   blit::api.set_framebuffer((uint8_t *)screen_fb, sizeof(screen_fb), {DISPLAY_WIDTH, DISPLAY_HEIGHT});
+#endif
 
   blit::set_screen_mode(blit::ScreenMode::lores);
 
