@@ -295,7 +295,9 @@ int main() {
   multicore_launch_core1(core1_main);
 #endif
 
+#ifndef BUILD_LOADER
   blit::set_screen_mode(ScreenMode::lores);
+#endif
 
   blit::render = ::render;
   blit::update = ::update;
