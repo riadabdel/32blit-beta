@@ -11,6 +11,7 @@
 .word __flash_binary_start // unused
 
 .section .rodata, "a"
+.align 4
 .global _ZN4blit3apiE
 _ZN4blit3apiE:
     .word 0x10000200
