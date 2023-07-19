@@ -25,12 +25,16 @@ struct GamepadMapping {
   uint8_t menu, home, joystick;
 };
 
+#define NO 0xFF
+
 static const GamepadMapping gamepad_mappings[]{
-  {0x057E2009,  3,  2,  1,  0,   17,   16,   19,   18,  8, 12, 11}, // Switch Pro Controller
-  {0x15320705,  0,  1,  3,  4, 0xFF, 0xFF, 0xFF, 0xFF, 16, 15, 13}, // Razer Raiju Mobile
-  {0x20D6A711,  2,  1,  3,  0, 0xFF, 0xFF, 0xFF, 0xFF,  8, 12, 10}, // PowerA wired Switch pro controller
-  {0x00000000,  0,  1,  2,  3, 0xFF, 0xFF, 0xFF, 0xFF,  4,  5,  6}  // probably wrong fallback
+  {0x057E2009,  3,  2,  1,  0, 17, 16, 19, 18,  8, 12, 11}, // Switch Pro Controller
+  {0x15320705,  0,  1,  3,  4, NO, NO, NO, NO, 16, 15, 13}, // Razer Raiju Mobile
+  {0x20D6A711,  2,  1,  3,  0, NO, NO, NO, NO,  8, 12, 10}, // PowerA wired Switch pro controller
+  {0x00000000,  0,  1,  2,  3, NO, NO, NO, NO,  4,  5,  6}  // probably wrong fallback
 };
+
+#undef NO
 
 // hat -> dpad
 const uint32_t dpad_map[]{
