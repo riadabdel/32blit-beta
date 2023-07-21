@@ -24,11 +24,16 @@ static constexpr uint I2C_REG_START = 0xFD;
 
 static constexpr uint32_t base_address = 0x10000;
 
+static const blit::Size resolutions[]{
+  {640, 480},
+};
+
 static pimoroni::APS6404 ram(CS, D0, pio1);
 static uint8_t ram_bank = 0;
 
 static bool display_enabled = false;
 static uint8_t need_mode_change = 2;
+static int cur_resolution = 0;
 
 static volatile bool do_render = false;
 
@@ -330,6 +335,19 @@ void init_display() {
   i2c_write_blocking(i2c1, I2C_ADDR, buf, 2, false);
 }
 
+static int find_resolution(const blit::Size &bounds) {
+  int i = 0;
+
+  for(auto &res : resolutions) {
+    if(bounds == res || bounds == res / 2 || bounds == res / 4)
+      return i;
+
+    i++;
+  }
+  
+  return -1;
+}
+
 void update_display(uint32_t time) {
   if(!do_render)
     return;
@@ -342,19 +360,20 @@ void update_display(uint32_t time) {
 
   // handle mode change
   if(need_mode_change) {
-    // TODO: other modes?
-    int base_width = 640, base_height = 480;
+    auto new_res = find_resolution(cur_surf_info.bounds);
 
-    uint8_t h_repeat = base_width / cur_surf_info.bounds.w, v_repeat = base_height /  cur_surf_info.bounds.h;
+    auto &base_bounds = resolutions[new_res];
 
-    uint16_t final_w =  cur_surf_info.bounds.w;
+    uint8_t h_repeat = base_bounds.w / cur_surf_info.bounds.w, v_repeat = base_bounds.h / cur_surf_info.bounds.h;
+
+    uint16_t final_w = cur_surf_info.bounds.w;
 
     if(h_repeat == 3) {
       h_repeat = 1;
-      final_w = base_width;
+      final_w = base_bounds.w;
     } else if(h_repeat > 2) {
       h_repeat = 2;
-      final_w = base_width / 2;
+      final_w = base_bounds.w / 2;
     }
 
     write_frame_setup(final_w,  cur_surf_info.bounds.h,  cur_surf_info.format, h_repeat, v_repeat);
@@ -388,10 +407,7 @@ bool display_mode_supported(blit::ScreenMode new_mode, const blit::SurfaceTempla
   if(new_surf_template.format != blit::PixelFormat::RGB565) // this is a lie
     return false;
 
-  // TODO
-  blit::Size base_bounds(640, 480);
-
-  if(new_surf_template.bounds == base_bounds || new_surf_template.bounds == base_bounds / 2 || new_surf_template.bounds == base_bounds / 4)
+  if(find_resolution(new_surf_template.bounds) != -1)
     return true;
 
   return false;
