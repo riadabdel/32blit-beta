@@ -20,9 +20,10 @@ namespace blit {
       set_screen_mode(new_mode, (PixelFormat)-1);
   }
 
-  bool set_screen_mode(ScreenMode new_mode, PixelFormat format) {
+  bool set_screen_mode(ScreenMode new_mode, PixelFormat format, Size bounds) {
     SurfaceTemplate new_screen;
     new_screen.format = format;
+    new_screen.bounds = bounds;
 
     if(!api.set_screen_mode_format(new_mode, new_screen))
       return false;
