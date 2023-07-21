@@ -69,7 +69,11 @@ bool set_screen_mode_format(ScreenMode new_mode, SurfaceTemplate &new_surf_templ
 
   switch(new_mode) {
     case ScreenMode::lores:
-      new_surf_template.bounds = lores_screen_size;
+      if(new_surf_template.bounds.empty())
+        new_surf_template.bounds = lores_screen_size;
+      else
+        new_surf_template.bounds /= 2;
+
 #ifdef BUILD_LOADER
       if(new_surf_template.bounds.w > max_fb_bounds.w / 2)
         new_surf_template.bounds.w = max_fb_bounds.w / 2;
@@ -78,7 +82,9 @@ bool set_screen_mode_format(ScreenMode new_mode, SurfaceTemplate &new_surf_templ
       break;
     case ScreenMode::hires:
     case ScreenMode::hires_palette:
-      new_surf_template.bounds = hires_screen_size;
+      if(new_surf_template.bounds.empty())
+        new_surf_template.bounds = hires_screen_size;
+
 #ifdef BUILD_LOADER
       if(new_surf_template.bounds.w > max_fb_bounds.w)
         new_surf_template.bounds.w = max_fb_bounds.w;
