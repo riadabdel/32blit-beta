@@ -15,7 +15,7 @@ namespace blit {
   extern void     (*update)           (uint32_t time);
   extern void     (*render)           (uint32_t time);
 
-  void set_screen_mode(ScreenMode new_mode);
+  void set_screen_mode(ScreenMode new_mode, Size bounds = {0, 0});
   bool set_screen_mode(ScreenMode new_mode, PixelFormat format, Size bounds = {0, 0});
   void set_screen_palette(const Pen *colours, int num_cols);
 

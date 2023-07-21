@@ -13,11 +13,11 @@ namespace blit {
   void (*update)(uint32_t time)                     = nullptr;
   void (*render)(uint32_t time)                     = nullptr;
 
-  void set_screen_mode(ScreenMode new_mode) {
+  void set_screen_mode(ScreenMode new_mode, Size bounds) {
     if(new_mode == ScreenMode::hires_palette)
-      set_screen_mode(ScreenMode::hires, PixelFormat::P);
+      set_screen_mode(ScreenMode::hires, PixelFormat::P, bounds);
     else
-      set_screen_mode(new_mode, (PixelFormat)-1);
+      set_screen_mode(new_mode, (PixelFormat)-1, bounds);
   }
 
   bool set_screen_mode(ScreenMode new_mode, PixelFormat format, Size bounds) {
