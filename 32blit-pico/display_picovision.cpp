@@ -385,7 +385,16 @@ bool display_render_needed() {
 }
 
 bool display_mode_supported(blit::ScreenMode new_mode, const blit::SurfaceTemplate &new_surf_template) {
-  return new_surf_template.format == blit::PixelFormat::RGB565; // this is a lie
+  if(new_surf_template.format != blit::PixelFormat::RGB565) // this is a lie
+    return false;
+
+  // TODO
+  blit::Size base_bounds(640, 480);
+
+  if(new_surf_template.bounds == base_bounds || new_surf_template.bounds == base_bounds / 2 || new_surf_template.bounds == base_bounds / 4)
+    return true;
+
+  return false;
 }
 
 void display_mode_changed(blit::ScreenMode new_mode, blit::SurfaceTemplate &new_surf_template) {
