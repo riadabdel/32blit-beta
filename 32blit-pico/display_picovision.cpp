@@ -395,7 +395,7 @@ void update_display(uint32_t time) {
 
     if(h_repeat == 3) {
       h_repeat = 1;
-      final_w = base_width;
+      final_w = base_bounds.w;
     } else if(h_repeat > 2) {
       h_repeat = 2;
       final_w = base_bounds.w / 2;
