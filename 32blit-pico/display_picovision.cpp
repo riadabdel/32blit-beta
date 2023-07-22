@@ -26,6 +26,9 @@ static constexpr uint32_t base_address = 0x10000;
 
 static const blit::Size resolutions[]{
   {640, 480},
+  {720, 480},
+  {720, 400},
+  {720, 576},
 };
 
 static pimoroni::APS6404 ram(CS, D0, pio1);
@@ -361,6 +364,21 @@ void update_display(uint32_t time) {
   // handle mode change
   if(need_mode_change) {
     auto new_res = find_resolution(cur_surf_info.bounds);
+
+    // resolution switch
+    if(new_res != cur_resolution) {
+      // if display was already enabled, we're too late so reboot
+      if(display_enabled) {
+        // seems to be the only functional way to reset
+        swd_load_program(section_addresses, section_data, section_data_len, std::size(section_data_len), 0x20000001, 0x15004000, true);
+        sleep_ms(100);
+        display_enabled = false;
+      }
+
+      uint8_t buf[2] = {I2C_REG_SET_RES, uint8_t(new_res)};
+      i2c_write_blocking(i2c1, I2C_ADDR, buf, 2, false);
+      cur_resolution = new_res;
+    }
 
     auto &base_bounds = resolutions[new_res];
 
