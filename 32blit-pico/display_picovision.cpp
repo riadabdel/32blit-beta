@@ -212,7 +212,7 @@ static void blit_rgba_rgb555_picovision(const blit::Surface* src, uint32_t soff,
 
   flush_batch();
 
-  if(src->format == blit::PixelFormat::RGB565) // still a lie
+  if(src->format == blit::PixelFormat::BGR555)
     return blit_rgb555<h_repeat>((uint16_t *)s, dest, doff, cnt, src_step);
 
   do {
@@ -422,7 +422,7 @@ bool display_render_needed() {
 }
 
 bool display_mode_supported(blit::ScreenMode new_mode, const blit::SurfaceTemplate &new_surf_template) {
-  if(new_surf_template.format != blit::PixelFormat::RGB565) // this is a lie
+  if(new_surf_template.format != blit::PixelFormat::BGR555)
     return false;
 
   if(find_resolution(new_surf_template.bounds) != -1)
