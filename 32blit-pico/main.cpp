@@ -19,8 +19,6 @@
 #include "multiplayer.hpp"
 #include "usb.hpp"
 
-#include "executable.hpp"
-
 #include "engine/api_private.hpp"
 
 using namespace blit;
