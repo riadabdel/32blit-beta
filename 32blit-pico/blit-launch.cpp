@@ -6,8 +6,10 @@
 #include "pico/multicore.h"
 
 #include "blit-launch.hpp"
+#include "file.hpp"
 
 #include "engine/engine.hpp"
+#include "engine/file.hpp"
 
 // code related to blit files and launching
 
@@ -42,22 +44,59 @@ RawMetadata *get_running_game_metadata() {
 }
 
 bool launch_file(const char *path) {
-  if(strncmp(path, "flash:/", 7) == 0) {
-    uint32_t offset = atoi(path + 7) * game_block_size;
+  uint32_t flash_offset;
 
-    auto header = (BlitGameHeader *)(XIP_NOCACHE_NOALLOC_BASE + offset);
-    // check header magic + device
-    if(header->magic != blit_game_magic || header->device_id != BlitDevice::RP2040)
+  if(strncmp(path, "flash:/", 7) == 0) // from flash
+    flash_offset = atoi(path + 7) * game_block_size;
+  else {
+    // from storage
+    // TODO: check if already in flash
+
+    auto file = open_file(path, blit::OpenMode::read);
+
+    if(!file)
       return false;
 
-    if(!header->init || !header->render || !header->tick)
+    BlitWriter writer;
+
+    uint32_t file_offset = 0;
+    uint32_t len = get_file_length(file);
+
+    writer.init(len);
+
+    // read in small chunks
+    uint8_t buf[FLASH_PAGE_SIZE];
+
+    while(file_offset < len) {
+      auto bytes_read = read_file(file, file_offset, FLASH_PAGE_SIZE, (char *)buf);
+      if(bytes_read <= 0)
+        break;
+
+      if(!writer.write(buf, bytes_read))
+        break;
+
+      file_offset += bytes_read;
+    }
+    
+    close_file(file);
+
+    // didn't write everything, fail launch
+    if(writer.get_remaining() > 0)
       return false;
 
-    requested_launch_offset = offset;
-    return true;
+    flash_offset = writer.get_flash_offset();
   }
 
-  return false;
+  auto header = (BlitGameHeader *)(XIP_NOCACHE_NOALLOC_BASE + flash_offset);
+  // check header magic + device
+  if(header->magic != blit_game_magic || header->device_id != BlitDevice::RP2040)
+    return false;
+
+  if(!header->init || !header->render || !header->tick)
+    return false;
+
+  requested_launch_offset = flash_offset;
+  return true;
 }
 
 void delayed_launch() {
