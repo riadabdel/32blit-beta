@@ -3,6 +3,7 @@
 
 #include "hardware/structs/rosc.h"
 #include "hardware/vreg.h"
+#include "hardware/timer.h"
 #include "pico/binary_info.h"
 #include "pico/multicore.h"
 #include "pico/rand.h"
@@ -211,6 +212,7 @@ void disable_user_code() {
 
 bool core1_started = false;
 
+#ifdef ENABLE_CORE1
 void core1_main() {
   core1_started = true;
   multicore_lockout_victim_init();
@@ -224,6 +226,15 @@ void core1_main() {
     sleep_us(1);
   }
 }
+
+#else
+static void alarm_callback(uint alarm_num) {
+  update_audio(::now());
+
+  timer_hw->intr = 1 << alarm_num;
+  hardware_alarm_set_target(alarm_num, make_timeout_time_ms(5));
+}
+#endif
 
 int main() {
 #if OVERCLOCK_250
@@ -247,6 +258,12 @@ int main() {
 
 #if defined(ENABLE_CORE1)
   multicore_launch_core1(core1_main);
+#else
+  // fallback audio timer if core1 is unavailable / not enabled
+  int alarm_num = hardware_alarm_claim_unused(true);
+  hardware_alarm_set_callback(alarm_num, alarm_callback);
+  hardware_alarm_set_target(alarm_num, make_timeout_time_ms(5));
+  irq_set_priority(TIMER_IRQ_0 + alarm_num, PICO_LOWEST_IRQ_PRIORITY);
 #endif
 
 #ifndef BUILD_LOADER
@@ -264,9 +281,6 @@ int main() {
     update_display(now);
     update_input();
     int ms_to_next_update = do_tick(::now());
-#if !defined(ENABLE_CORE1)
-    update_audio(now);
-#endif
     update_led();
     update_usb();
     update_multiplayer();
