@@ -231,7 +231,7 @@ int main() {
   // this is required for a stable 250MHz on some RP2040s
   vreg_set_voltage(VREG_VOLTAGE_1_20);
   sleep_ms(10);
-  set_sys_clock_khz(216000, true);
+  set_sys_clock_khz(250000, true);
 #endif
 
   stdio_init_all();
