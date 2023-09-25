@@ -21,6 +21,7 @@ static constexpr uint I2C_SCL = 7;
 static constexpr uint I2C_ADDR = 0x0D;
 static constexpr uint I2C_REG_SET_RES = 0xFC;
 static constexpr uint I2C_REG_START = 0xFD;
+static constexpr uint I2C_REG_STOP = 0xFF;
 
 static constexpr uint32_t base_address = 0x10000;
 
@@ -369,12 +370,14 @@ void update_display(uint32_t time) {
 
     // resolution switch
     if(new_res != cur_resolution) {
-      // if display was already enabled, we're too late so reboot
+      // if display was already enabled, we're too late so stop and restart
       if(display_enabled) {
-        // seems to be the only functional way to reset
-        swd_load_program(section_addresses, section_data, section_data_len, std::size(section_data_len), 0x20000001, 0x15004000, true);
-        sleep_ms(100);
+        uint8_t buf[2] = {I2C_REG_STOP, 1};
+        i2c_write_blocking(i2c1, I2C_ADDR, buf, 2, false);
+
         display_enabled = false;
+
+        sleep_ms(50); // wait a bit
       }
 
       uint8_t buf[2] = {I2C_REG_SET_RES, uint8_t(new_res)};
