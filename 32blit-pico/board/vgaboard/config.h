@@ -4,6 +4,8 @@
 #define ALLOW_HIRES 0 // disable by default, mode switching isn't supported
 #endif
 
+#define AUDIO_MAX_SAMPLE_UPDATE 64
+
 // native
 #define SD_CLK   5
 #define SD_CMD  18
