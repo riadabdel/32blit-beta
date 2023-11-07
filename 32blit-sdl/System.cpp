@@ -1,6 +1,12 @@
 #include <chrono>
 #include <iostream>
 #include <random>
+
+#ifndef _WIN32
+#include <fcntl.h>
+#include <unistd.h>
+#endif
+
 #include "SDL.h"
 
 #include "File.hpp"
@@ -14,6 +20,33 @@
 #include "engine/api_private.hpp"
 
 extern Input *blit_input;
+
+#pragma pack(push, 2)
+struct HeaderedMetadata {
+  char header[8];
+  uint16_t len;
+
+  // copy/pasted RawMetadata
+  uint32_t crc32;
+  char datetime[16];
+  char title[25];
+  char description[129];
+  char version[17];
+  char author[17];
+};
+#pragma pack(pop)
+
+// placeholder for native executables
+static const HeaderedMetadata native_meta{
+  {'B', 'L', 'I', 'T', 'M', 'E', 'T', 'A'},
+  sizeof(HeaderedMetadata) - 10,
+  0,
+  {},
+  {'E', 'x', 'e', 'c', 'u', 't', 'a', 'b', 'l', 'e'},
+  {},
+  {'v', '1'},
+  {}
+};
 
 int System::width = System::max_width;
 int System::height = System::max_height;
@@ -161,6 +194,80 @@ void blit_send_message(const uint8_t *data, uint16_t length) {
 	blit_multiplayer->send_message(data, length);
 }
 
+static bool launch(const char *path) {
+#ifndef _WIN32
+  // pipe to detect success
+  int pipefds[2];
+
+  if(pipe(pipefds) != 0)
+    return false;
+
+  auto flags = fcntl(pipefds[1], F_GETFD);
+
+  if(fcntl(pipefds[1], F_SETFD, flags | FD_CLOEXEC) != 0)
+    return false;
+
+  auto full_path = map_path(path);
+
+  // fork
+  auto pid = fork();
+
+  if(pid == -1)
+    return false;
+
+  if(!pid){
+    char *const args[] = {full_path.data(), nullptr};
+    execv(args[0], args);
+
+    // failed
+    write(pipefds[1], &errno, sizeof(errno));
+    _exit(1);
+  } else {
+    // check pipe for success
+    close(pipefds[1]);
+
+    int read_count, read_data;
+    while((read_count = read(pipefds[0], &read_data, sizeof(read_data))) == -1) {
+      if(errno != EAGAIN && errno != EINTR)
+        break;
+    }
+
+    if(read_count)
+      return false;
+
+    // pipe closed without writing, exec was successful
+    return true;
+  }
+
+#endif
+  return false;
+}
+
+static void *get_type_handler_metadata(const char *filetype) {
+  // if we got here we said we could launch it, so have to return something
+  return (void *)&native_meta;
+}
+
+static blit::CanLaunchResult can_launch(const char *path) {
+  std::string_view sv(path);
+  auto last_dot = sv.find_last_of('.');
+  auto ext = last_dot == std::string::npos ? "" : std::string(sv.substr(last_dot + 1));
+  for(auto &c : ext)
+    c = tolower(c);
+
+  // any blit file is incompatible
+  if(ext == "blit")
+    return blit::CanLaunchResult::IncompatibleBlit;
+
+#ifndef _WIN32
+  // claim we can launch anything executable
+  if(access(path, X_OK) == 0)
+    return blit::CanLaunchResult::Success;
+#endif
+
+  return blit::CanLaunchResult::UnknownType;
+}
+
 // SDL events
 const Uint32 System::timer_event = SDL_RegisterEvents(2);
 const Uint32 System::loop_event = System::timer_event + 1;
@@ -233,6 +340,9 @@ void System::run() {
 	blit::api.decode_jpeg_buffer = blit_decode_jpeg_buffer;
 	blit::api.decode_jpeg_file = blit_decode_jpeg_file;
 
+  blit::api.launch = ::launch;
+  blit::api.get_type_handler_metadata = get_type_handler_metadata;
+
   blit::api.get_launch_path = ::get_launch_path;
 
 	blit::api.is_multiplayer_connected = blit_is_multiplayer_connected;
@@ -240,6 +350,8 @@ void System::run() {
 	blit::api.send_message = blit_send_message;
 
   blit::api.get_metadata = ::get_metadata;
+
+  blit::api.can_launch = ::can_launch;
 
 	blit::set_screen_mode(blit::lores);
 
