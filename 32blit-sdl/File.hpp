@@ -6,7 +6,9 @@
 
 #include "engine/file.hpp"
 
+std::string map_path(const std::string &path);
 void setup_base_path();
+
 void *open_file(const std::string &file, int mode);
 int32_t read_file(void *fh, uint32_t offset, uint32_t length, char *buffer);
 int32_t write_file(void *fh, uint32_t offset, uint32_t length, const char *buffer);

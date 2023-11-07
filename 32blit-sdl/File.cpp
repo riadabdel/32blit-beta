@@ -17,7 +17,7 @@
 
 static std::string base_path, save_path;
 
-static std::string map_path(const std::string &path) {
+std::string map_path(const std::string &path) {
   // check if the path is under the save path
   if(path.compare(0, save_path.length(), save_path) == 0)
     return path;
