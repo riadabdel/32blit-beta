@@ -61,6 +61,12 @@ namespace blit {
     Pen *palette = nullptr;
   };
 
+  enum class CanLaunchResult {
+    Success = 0,
+    UnknownType,       /// no known handler for this file
+    InvalidFile,      /// file is not valid/doesn't exist
+    IncompatibleBlit, /// file is incompatible with this device
+  };
 
   #pragma pack(push, 4)
   struct APIConst {
@@ -142,6 +148,10 @@ namespace blit {
     // low level framebuffer
     uint8_t *(*get_screen_data)(); // used to get current screen.data before render if firmware does page-flipping
     void (*set_framebuffer)(uint8_t *data, uint32_t max_size, Size max_bounds); // pass framebuffer over if allocated on the "user" side of the API
+  
+    // if launch is expected to succeed on this file
+    // files this returns success for should be .blit files or have a registered handler (get_type_handler_metadata should return valid metadata)
+    CanLaunchResult (*can_launch)(const char *path);
   };
 
   struct APIData {
