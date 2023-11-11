@@ -146,6 +146,10 @@ int main(int argc, char *argv[]) {
   int x = SDL_WINDOWPOS_UNDEFINED, y = SDL_WINDOWPOS_UNDEFINED;
   bool fullscreen = false;
 
+#ifdef __DEVKITA64__
+  fullscreen = true;
+#endif
+
   std::cout << metadata_title << " " << metadata_version << std::endl;
   std::cout << "Powered by 32Blit SDL2 runtime - github.com/32blit/32blit-sdk" << std::endl << std::endl;
 
