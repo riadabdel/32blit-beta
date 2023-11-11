@@ -216,9 +216,6 @@ function(blit_executable NAME)
 		install(SCRIPT ${CMAKE_CURRENT_BINARY_DIR}/fixup.cmake)
 	endif()
 
-	if(CMAKE_SYSTEM_NAME STREQUAL "NintendoSwitch")
-		nx_create_nro(${NAME})
-	endif()
 endfunction()
 
 function(blit_metadata TARGET FILE)
@@ -276,4 +273,16 @@ const char *metadata_category = \"\${METADATA_CATEGORY}\";"
 	file(GENERATE OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${TARGET}_metadata.cpp CONTENT "${METADATA_CONTENT}")
 
 	target_sources(${TARGET} PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/${TARGET}_metadata.cpp)
+
+	if(CMAKE_SYSTEM_NAME STREQUAL "NintendoSwitch")
+		# yeah, this does mean you don't get an .nro without metadata
+		nx_generate_nacp(
+			OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${TARGET}.nacp
+			NAME ${METADATA_TITLE}
+			AUTHOR ${METADATA_AUTHOR}
+			VERSION ${METADATA_VERSION}
+		)
+
+		nx_create_nro(${TARGET} NACP ${CMAKE_CURRENT_BINARY_DIR}/${TARGET}.nacp)
+	endif()
 endfunction()
