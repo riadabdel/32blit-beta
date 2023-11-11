@@ -91,6 +91,11 @@ else()
 	find_sdl_lib(SDL2_image SDL_image.h)
 	find_sdl_lib(SDL2_net SDL_net.h)
 
+	# this is really a "static lib with no config" check
+	if(CMAKE_SYSTEM_NAME STREQUAL "NintendoSwitch")
+		set(SDL2_IMAGE_LIBRARY ${SDL2_IMAGE_LIBRARY} -ljpeg -lpng -lwebp -lz)
+	endif()
+
 	target_include_directories(BlitHalSDL
 		PRIVATE	${SDL2_IMAGE_INCLUDE_DIR} ${SDL2_NET_INCLUDE_DIR}
 	)
@@ -209,6 +214,10 @@ function(blit_executable NAME)
 		)
 
 		install(SCRIPT ${CMAKE_CURRENT_BINARY_DIR}/fixup.cmake)
+	endif()
+
+	if(CMAKE_SYSTEM_NAME STREQUAL "NintendoSwitch")
+		nx_create_nro(${NAME})
 	endif()
 endfunction()
 
