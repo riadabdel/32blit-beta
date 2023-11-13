@@ -283,6 +283,15 @@ const char *metadata_category = \"\${METADATA_CATEGORY}\";"
 			VERSION ${METADATA_VERSION}
 		)
 
-		nx_create_nro(${TARGET} NACP ${CMAKE_CURRENT_BINARY_DIR}/${TARGET}.nacp)
+		set(ICON ${CMAKE_CURRENT_BINARY_DIR}/icon.jpeg)
+
+		add_custom_command(
+			OUTPUT ${ICON}
+			COMMAND cd ${CMAKE_CURRENT_SOURCE_DIR} && ${32BLIT_TOOLS_EXECUTABLE} metadata --force --config ${FILE} --icon-out ${ICON} --icon-size 256
+			DEPENDS ${METADATA_DEPENDS} ${FILE}
+			VERBATIM
+		)
+
+		nx_create_nro(${TARGET} NACP ${CMAKE_CURRENT_BINARY_DIR}/${TARGET}.nacp ICON ${ICON})
 	endif()
 endfunction()
