@@ -179,7 +179,7 @@ namespace blit {
     // raw i2c access
     void (*i2c_completed)(uint8_t address, uint8_t reg, const uint8_t *data, uint16_t len); // callback when done
 
-    COMPAT_PAD(uintptr_t, pad5, 6);
+    COMPAT_PAD(uintptr_t, pad5, 7);
   };
 
   #pragma pack(pop)
