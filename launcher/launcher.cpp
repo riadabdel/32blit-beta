@@ -132,22 +132,6 @@ static bool parse_file_metadata(const std::string &filename, BlitGameMetadata &m
   return false;
 }
 
-static bool is_compatible(const BlitGameMetadata &metadata) {
-  // TODO: get the current device id from somewhere
-#ifdef PICO_BUILD
-  if(metadata.device_id != BlitDevice::RP2040)
-    return false;
-#else
-  if(metadata.device_id != BlitDevice::STM32Blit && metadata.device_id != BlitDevice::STM32BlitOld)
-    return false;
-#endif
-
-  if(metadata.api_version_major != api_version_major || metadata.api_version_minor > api_version_minor)
-    return false;
-
-  return true;
-}
-
 static void sort_file_list() {
     using Iterator = std::vector<GameInfo>::iterator;
     using Compare = bool(const GameInfo &, const GameInfo &);
@@ -190,7 +174,7 @@ static void load_file_list(const std::string &directory) {
         return true;
     }
 
-    return res == CanLaunchResult::Success;
+    return res == CanLaunchResult::Success || res == CanLaunchResult::IncompatibleBlit;
   });
 
   game_list.reserve(files.size()); // worst case
@@ -210,6 +194,7 @@ static void load_file_list(const std::string &directory) {
 
     if(ext == "blit") {
       game.type = GameType::game;
+      game.can_launch = api.can_launch(game.filename.c_str()) == CanLaunchResult::Success;
 
       // check for metadata
       BlitGameMetadata meta;
@@ -594,7 +579,7 @@ static void render_game_info() {
   snprintf(buf, 20, "%i block%s", num_blocks, num_blocks == 1 ? "" : "s");
   screen.text(buf, minimal_font, Point(game_info_offset.x, screen.bounds.h - 16));
 
-  if(!is_compatible(selected_game_metadata)) {
+  if(!selected_game.can_launch) {
     screen.pen = {255, 0, 0};
     screen.text("INCOMPATIBLE", minimal_font, Point(screen.bounds.w - 10, screen.bounds.h - 16), true, TextAlign::top_right);
   }
