@@ -18,3 +18,4 @@
 #define LCD_MOSI_PIN 11
 #define LCD_RESET_PIN 12
 #define LCD_BACKLIGHT_PIN 13
+#define LCD_ROTATION 90
